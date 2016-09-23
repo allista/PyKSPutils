@@ -1,0 +1,103 @@
+#!/usr/bin/python
+# coding=utf-8
+
+from __future__ import print_function
+
+import os
+import sys
+import re
+import argparse
+from KSPUtils import ConfigNode, NamedObject, Part, Module
+
+
+class Term(list):
+    class Node(object):
+        def __init__(self, nodestring):
+            self._nonzero = bool(nodestring)
+            node_name = nodestring.split(':')
+            if len(node_name) > 2:
+                raise ValueError('Incorrect node term format. Should be Node[:name].')
+            self.node = re.compile(node_name[0])
+            self.name = None if len(node_name) < 2 else re.compile(node_name[1])
+
+        def __nonzero__(self): return self._nonzero
+
+        def __str__(self):
+            if not self: return ''
+            return (self.node.pattern if not self.name
+                    else '%s:%s' % (self.node.pattern, self.name.pattern))
+
+        def match(self, obj):
+            """
+            Returns True if the object matches the NodeTerm, False otherwise.
+            :type obj: NamedObject
+            :rtype: bool
+            """
+            if not self: return True
+            return self.node.match(obj.type) and (self.name is None or self.name.match(obj.name))
+
+        def match_as_value(self, obj):
+            """
+            Returns True if one of the object's value matches the NodeTerm, False otherwise.
+            :type obj: NamedObject
+            :rtype: bool
+            """
+            if not self: return True
+            return (any(self.node.match(v.name) for v in obj.values) if self.name is None
+                    else
+                    any(self.name.match(v.value) for v in obj.values if self.node.match(v.name)))
+
+    def __init__(self, string):
+        list.__init__(self, (self.Node(t) for t in string.split('/')))
+
+    def __str__(self): return '/'.join(self)
+
+    @classmethod
+    def _match(cls, obj, path):
+        """
+        Returns True if the object matches the path, False otherwise.
+        :type obj: NamedObject
+        :type path: list
+        :rtype: bool
+        """
+        if len(path) == 1:
+            return path[0].match_as_value(obj)
+        if not path[0].match(obj): return False
+        subpath = path[1:]
+        if len(subpath) == 1:
+            return cls._match(obj, subpath)
+        return any(cls._match(child, subpath)
+                   for child in obj.children)
+
+    def match_object(self, obj):
+        """
+        Returns True if the object matches the term, False otherwise.
+        :type obj: NamedObject
+        :rtype: bool
+        """
+        return self._match(obj, self)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Search through part configurations for specific information')
+    parser.add_argument('term', metavar='term',
+                        type=str,
+                        help='Search term(s) of the form:\n'
+                             'Node1[:name]/Node2[:name]/[Value:pattern]\n'
+                             'Each Node, node name, Value and pattern are interpreted as separate regular '
+                             'expressions. Node names may be omitted. Empty Node:name pair matches any node.')
+    parser.add_argument('path', metavar='path',
+                        type=str, nargs="+", default=['.'],
+                        help='Path(s) to search for part configuration files.')
+    args = parser.parse_args()
+    # parse search term
+    term = Term(args.term)
+    if term[0].node.match('PART') is None:
+        term.insert(0, Term.Node('PART'))
+    # parse parts
+    for d in args.path:
+        if os.path.isdir(d):
+            for p in Part.LoadFromPath(d):
+                if term.match_object(p):
+                    print('%s\n' % p)
+    sys.exit(0)
