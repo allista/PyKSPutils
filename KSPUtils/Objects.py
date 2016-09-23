@@ -9,15 +9,12 @@ class NamedObject(ValueCollection):
 
     @classmethod
     def LoadFromPath(cls, path, ext='.cfg', followlinks=True):
-        objects = []
         for dirpath, _dirnames, filenames in os.walk(path, followlinks=followlinks):
             for filename in filenames:
                 if not filename.endswith(ext): continue
                 node = ConfigNode.Load(os.path.join(dirpath, filename))
                 if node.name != cls.type: continue
-                obj = cls.from_node(node)
-                objects.append(obj)
-        return objects
+                yield cls.from_node(node)
 
     @classmethod
     def Patch(cls, name, mod, spec='', insert=False):
