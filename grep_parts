@@ -7,7 +7,7 @@ import os
 import sys
 import re
 import argparse
-from KSPUtils import ConfigNode, NamedObject, Part, Module
+from KSPUtils import NamedObject, Part
 
 
 class Term(list):
