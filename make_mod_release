@@ -73,7 +73,6 @@ def zip_dir(zipf, dirpath, exclude=None, prefix=''):
     if wdir:
         dirpath = os.path.basename(dirpath)
         os.chdir(wdir)
-    print(os.curdir, dirpath)
     try:
         for dirname, dirs, files in os.walk(dirpath):
             for f in files:
@@ -97,7 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('-e',  '--exclude', metavar='paths', dest='exclude', 
                         type=str, nargs="*", default=[],
                         help='Files that should be excluded from the distribution. '
-                        'Relative the the GameData directory. Wildcards are supported.')
+                        'Wildcards are supported.')
     parser.add_argument('-i', '--include', metavar='paths', dest='include',
                         type=str, nargs="*", default=[],
                         help='Paths that should be included into the distribution. '
