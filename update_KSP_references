@@ -1,0 +1,52 @@
+#!/usr/bin/python
+# coding=utf-8
+
+import argparse
+import os
+import re
+
+from io import StringIO
+
+assembly_re = re.compile(r'\s*<HintPath>(.*)\\KSP_Data\\Managed\\.*\.dll</HintPath>')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Changes references to KSP libraries in .csproj files.')
+    parser.add_argument('kspdir',
+                        type=str,
+                        help='Path to the KSP installation directory.')
+    args = parser.parse_args()
+    # check provided path
+    if not os.path.isdir(args.kspdir):
+        print('No such directory: %s' % args.kspdir)
+        os.exit(1)
+    datapath = os.path.join(args.kspdir, 'KSP_Data', 'Managed')
+    if not os.path.isdir(datapath):
+        print('Not a valid KSP installation.\n'
+              'Directory not found: %s' % datapath)
+        os.exit(2)
+    # get project files, search for the references and change KSP paths
+    kspfull = os.path.abspath(args.kspdir)
+    for dirname, dirs, files in os.walk(os.curdir):
+        for f in files:
+            if f.endswith('.csproj'):
+                changed = False
+                edits = StringIO()
+                ksprel = os.path.relpath(kspfull, dirname)
+                ksprel = ksprel.rstrip('/\\').replace('/', '\\')
+                proj = os.path.join(dirname, f)
+                with open(proj) as inp:
+                    for line in inp:
+                        match = assembly_re.match(line)
+                        if not match or ksprel == match.group(1):
+                            edits.write(line.decode('utf8'))
+                            continue
+                        edits.write(line.replace(match.group(1), ksprel).decode('utf8'))
+                        changed = True
+                if changed:
+                    print('Changing references in: %s' % proj)
+                    edits.seek(0)
+                    with open(proj, 'w') as out:
+                        out.write(edits.read())
+
+
+

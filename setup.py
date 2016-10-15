@@ -4,7 +4,7 @@ setup(
         name='PyKSPutils',
         version='1.0',
         packages=['KSPUtils'],
-        scripts=['make_mod_release', 'grep_parts'],
+        scripts=['make_mod_release', 'grep_parts', 'update_KSP_references'],
         url='',
         license='MIT',
         author='Allis Tauri',
