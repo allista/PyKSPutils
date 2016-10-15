@@ -17,10 +17,10 @@ class NamedObject(ValueCollection):
                 yield cls.from_node(node)
 
     @classmethod
-    def Patch(cls, name, mod, spec='', insert=False):
+    def Patch(cls, operator, name, spec=''):
         p = cls()
-        node = '%' if insert else '@'
-        node += ('%s[%s]:FOR[%s]%s' % (cls.type, name, mod, spec))
+        node = '%s%s[%s]' % (operator or '@', cls.type, name)
+        if spec: node += spec
         p.type = node
         return p
 
