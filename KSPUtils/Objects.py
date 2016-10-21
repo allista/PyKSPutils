@@ -46,7 +46,9 @@ class NamedObject(ValueCollection):
 
     @classmethod
     def mirror_value(cls, name, T=str):
-        def getter(self): return T(self.GetValue(name))
+        def getter(self):
+            try: return T(self.GetValue(name))
+            except: return None
         def setter(self, val): self.SetValue(name, T(val))
         setattr(cls, name, property(getter, setter))
 
