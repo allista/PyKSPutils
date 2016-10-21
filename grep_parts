@@ -3,35 +3,48 @@
 
 from __future__ import print_function
 
-import os
 import sys
 import argparse
-from KSPUtils import Part, SearchTerm, SearchGroup
+
+from KSPUtils import ConfigNode
+from KSPUtils import Part, SearchQuery
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Search through part configurations for specific information')
-    parser.add_argument('term', metavar='[^]term',
-                        type=str, nargs="+",
-                        help='Search term(s) of the form:\n'
-                             'Node1[:name]/Node2[:name]/[Value:pattern]\n'
-                             'Each Node, node name, Value and pattern are interpreted as separate regular '
+    parser = argparse.ArgumentParser(description='Search through part configurations using complex query '
+                                                 'and print the parts found.')
+    parser.add_argument('query', metavar='query',
+                        type=str,
+                        help='Search query of the form:\n'
+                             '{term1 || term2} && term3 ...\n'
+                             'where "term" is of the form:\n'
+                             '[^]Node1[:name]/Node2[:name]/[Key:value]\n'
+                             'Each Node, node name, Key and value are interpreted as separate regular '
                              'expressions. Node names may be omitted. Empty Node:name pair matches any node. '
-                             'The ^ sign negates the term, meaning "everything except that".')
-    parser.add_argument('path', metavar='path',
-                        type=str, default='.',
-                        help='Path to search for part configuration files.')
+                             'The ^ sign negates the term, meaning "everything except that". '
+                             'Logical operations and brackets are supported. '
+                             'The PART node may be omitted.')
+    parser.add_argument('path', metavar='path(s)',
+                        type=str, default=['.'], nargs='*',
+                        help='Path(s) to search for part configuration files. '
+                             'If "-" is given, read from the standard input.')
     args = parser.parse_args()
-    # parse search term
-    terms = SearchGroup()
-    for t in args.term:
-        term = SearchTerm(t)
-        if term[0].node.match('PART') is None:
-            term.insert(0, SearchTerm.Node('PART'))
-        terms.append(term)
+    # parse search query
+    try:
+        query = SearchQuery.Parse(args.query, 'PART')
+    except ValueError as e:
+        print(e.message)
+        sys.exit(1)
     # parse parts
-    if os.path.isdir(args.path):
-        for p in Part.LoadFromPath(args.path):
-            if terms.match(p):
-                print('%s\n' % p)
+    def match_and_print(p):
+        if p is None: return
+        if query.match(p):
+            print('%s\n' % p)
+    for path in args.path:
+        if path == '-':  # stdin
+            for p in Part.LoadFromNode(ConfigNode.FromText(sys.stdin.read())):
+                match_and_print(p)
+        else:
+            for p in Part.LoadFromPath(path):
+                match_and_print(p)
     sys.exit(0)
