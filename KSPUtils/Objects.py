@@ -3,18 +3,39 @@ import os
 from .Collections import ValueCollection, ListDict
 from .ConfigNode import ConfigNode
 
+
 class NamedObject(ValueCollection):
     _db = {}
     type = 'None'
 
     @classmethod
+    def LoadFromFile(cls, path):
+        for obj in cls.LoadFromNode(ConfigNode.Load(path)):
+            yield obj
+
+    @classmethod
     def LoadFromPath(cls, path, ext='.cfg', followlinks=True):
+        if os.path.isfile(path):
+            for obj in cls.LoadFromFile(path):
+                yield obj
+            return
+        if not os.path.isdir(path):
+            yield None
+            return
         for dirpath, _dirnames, filenames in os.walk(path, followlinks=followlinks):
             for filename in filenames:
                 if not filename.endswith(ext): continue
-                node = ConfigNode.Load(os.path.join(dirpath, filename))
-                if node.name != cls.type: continue
-                yield cls.from_node(node)
+                for obj in cls.LoadFromFile(os.path.join(dirpath, filename)):
+                    yield obj
+
+    @classmethod
+    def LoadFromNode(cls, node):
+        if node.name == cls.type:
+            yield cls.from_node(node)
+        elif node.subnodes:
+            for subnode in node.subnodes:
+                for obj in cls.LoadFromNode(subnode):
+                    yield obj
 
     @classmethod
     def Patch(cls, operator, name, spec=''):
