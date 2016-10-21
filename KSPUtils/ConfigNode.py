@@ -89,13 +89,13 @@ class ConfigNode(ValueCollection):
             if idx < len(line)-1:
                 lines.insert(l+1, line[1:])
                 lines[l] = sym
-                l += 2
+                l = min(len(lines)-1, l+2)
         except ValueError: pass
         return l
         
     def _preformat(self, lines):
         l = len(lines)
-        while l >= 0:
+        while l > 0:
             l -= 1
             line = lines[l]
             try:
