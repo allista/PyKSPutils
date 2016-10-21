@@ -6,6 +6,12 @@ class ListDict(object):
         self._values = []
         self._index = {}
 
+    def __bool__(self):
+        return bool(self._values)
+
+    def __iter__(self):
+        return self._values.__iter__()
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._values[key]
