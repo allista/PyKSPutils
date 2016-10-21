@@ -44,7 +44,13 @@ class ConfigNode(ValueCollection):
         self._parse(lines, self)
         if len(self.values) == 0 and len(self.subnodes) == 1:
             self.Clone(self.subnodes[0])
-            
+
+    @classmethod
+    def FromText(cls, text):
+        node = cls()
+        node.Parse(text)
+        return node
+
     @classmethod
     def Load(cls, filename):
         node = cls()
