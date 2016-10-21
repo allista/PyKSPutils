@@ -1,6 +1,8 @@
 from __future__ import print_function
 
 import re
+from collections import Counter
+from itertools import chain
 from KSPUtils import NamedObject
 
 
@@ -28,6 +30,8 @@ class _AbstractTerm(object):
     def __str__(self):
         return '^' if self.negative else ''
 
+    def __repr__(self): return str(self)
+
 
 class Term(list, _AbstractTerm):
     class Node(object):
@@ -40,11 +44,14 @@ class Term(list, _AbstractTerm):
             self.name = None if len(node_name) < 2 else re.compile(node_name[1])
 
         def __nonzero__(self): return self._nonzero
+        def __bool__(self): return self._nonzero
 
         def __str__(self):
             if not self: return ''
             return (self.node.pattern if not self.name
                     else '%s:%s' % (self.node.pattern, self.name.pattern))
+
+        def __repr__(self): return str(self)
 
         def match(self, obj):
             """
@@ -66,6 +73,18 @@ class Term(list, _AbstractTerm):
                     else
                     any(self.name.match(v.value) for v in obj.values if self.node.match(v.name)))
 
+        def match_value(self, val):
+            """
+            Returns True if the given value matches the NodeTerm, False otherwise.
+            :type val: ValueCollection.Value
+            :rtype: bool
+            """
+            if not self: return True
+            if self.name is None:
+                return self.node.match(val.name)
+            return self.node.match(val.name) and self.name.match(val.value)
+
+
     def __init__(self, string):
         """
         :param string str: NODE:name1/SUBNODE:name2/SUBSUBNODE:name3/ValueName:value
@@ -76,6 +95,8 @@ class Term(list, _AbstractTerm):
 
     def __str__(self):
         return _AbstractTerm.__str__(self) + '/'.join(str(n) for n in self)
+
+    def __repr__(self): return str(self)
 
     @classmethod
     def _match_path(cls, obj, path):
@@ -94,8 +115,33 @@ class Term(list, _AbstractTerm):
         return any(cls._match_path(child, subpath)
                    for child in obj.children)
 
+    @classmethod
+    def _select_by_path(cls, obj, path):
+        """
+        Returns objects that match the path, None otherwise.
+        :type obj: NamedObject
+        :type path: list
+        :rtype: list of NamedObjects
+        """
+        if len(path) == 1:
+            node = path[0]
+            if not node: return [obj]
+            return [v for v in obj.values if node.match_value(v)]
+        if not path[0].match(obj): return []
+        subpath = path[1:]
+        if len(subpath) == 1:
+            return cls._select_by_path(obj, subpath)
+        res = [cls._select_by_path(child, subpath)
+               for child in obj.children]
+        return list(chain.from_iterable(objects for objects in
+                          (cls._select_by_path(child, subpath)
+                           for child in obj.children) if objects))
+
     def _match_object(self, obj):
         return self._match_path(obj, self)
+
+    def select(self, obj):
+        return self._select_by_path(obj, self)
 
     @classmethod
     def Convert(cls, term):
@@ -113,6 +159,8 @@ class Group(list, _AbstractTerm):
     def __str__(self):
         return '{%s%s}' % (_AbstractTerm.__str__(self), ' AND '.join(str(t) for t in self))
 
+    def __repr__(self): return str(self)
+
 
 class Query(_AbstractTerm):
     class _Or(_AbstractTerm):
@@ -127,11 +175,11 @@ class Query(_AbstractTerm):
                     self.term2.match(obj))
 
         def __str__(self):
-            return _AbstractTerm.__str__(self) + ('%s OR %s ' % (self.term1, self.term2))
+            return _AbstractTerm.__str__(self) + ('%s OR %s' % (self.term1, self.term2))
 
-    def __init__(self, term):
+    def __init__(self, term = None):
         _AbstractTerm.__init__(self)
-        self.root = Group(term)
+        self.root = Group(term) if term else Group()
         self.last = self.root
 
     def And(self, term):
@@ -152,3 +200,90 @@ class Query(_AbstractTerm):
 
     def __str__(self):
         return _AbstractTerm.__str__(self) + str(self.root)
+
+    def __repr__(self): return str(self)
+
+    AND = '&&'
+    OR = '||'
+    OPS = (AND, OR)
+    op_re = re.compile(r'(\|\||&&)')
+
+    class _tree(list):
+        def __init__(self, parent=None):
+            self.parent = parent
+
+        def subtree(self):
+            tree = Query._tree(self)
+            self.append(tree)
+            return tree
+
+        def __str__(self):
+            return '{\n%s\n}' % '\n'.join('    %s' % l for n in self
+                                          for l in str(n).splitlines())
+
+    @classmethod
+    def _expand2tree(cls, string):
+        tree = cls._tree()
+        cur = tree
+        buf = []
+        def flush(buffer):
+            if buffer:
+                cur.extend(atom for atom in
+                           (a.strip() for a in cls.op_re.split(''.join(buffer).strip()))
+                           if atom)
+            return []
+        for i, l in enumerate(string):
+            if l == '{':
+                buf = flush(buf)
+                cur = cur.subtree()
+            elif l == '}':
+                buf = flush(buf)
+                cur = cur.parent
+            else: buf.append(l)
+        flush(buf)
+        while len(tree) == 1 and isinstance(tree[0], Query._tree):
+            tree = tree[0]
+            tree.parent = None
+        return tree
+
+    @classmethod
+    def _tree2query(cls, tree, root_node):
+        query = cls()
+        last_op = None
+        def add(term):
+            if last_op is None or last_op == cls.AND:
+                if root_node:
+                    term = Term.Convert(term)
+                    if term[0].node.match(root_node) is None:
+                        term.insert(0, Term.Node(root_node))
+                query.And(term)
+            else: query.Or(term)
+        for leaf in tree:
+            if leaf in cls.OPS:
+                last_op = leaf
+            elif isinstance(leaf, Query._tree):
+                add(cls._tree2query(leaf).root)
+                last_op = None
+            else:
+                add(leaf)
+        return query
+
+    @classmethod
+    def Parse(cls, string, root_node=None):
+        # join multiline
+        string = ' '.join(string.split('\n\r'))
+        # remove white spaces
+        string = string.strip()
+        # perform bracket count
+        c = Counter(string)
+        if ('{' in c or '}' in c) and c['{'] != c['}']:
+            raise ValueError('Malformed query string: unbalanced brackets.')
+        # expand all internal groups into a tree
+        tree = cls._expand2tree(string)
+        # construct a query from the resulted tree
+        query = cls._tree2query(tree, root_node=root_node)
+        return query
+
+
+if __name__ == '__main__':
+    print(Query.Parse('sdf && {wetqew ||  asdljf} && {saldkjf ||   {asdl || kjf} && wet } || lask djg'))
