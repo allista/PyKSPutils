@@ -40,10 +40,14 @@ class NamedObject(ValueCollection):
     @classmethod
     def Patch(cls, operator, name, spec=''):
         p = cls()
-        node = '%s%s[%s]' % (operator or '@', cls.type, name)
+        node = '%s%s[%s]' % (operator, cls.type, name)
         if spec: node += spec
         p.type = node
         return p
+
+    @classmethod
+    def PatchValue(cls, operator, name, value):
+        return ValueCollection.Value('%s%s' % (operator, name), value)
 
     @classmethod
     def register(cls, typename):
