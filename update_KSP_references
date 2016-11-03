@@ -46,7 +46,7 @@ if __name__ == '__main__':
                     print('Changing references in: %s' % proj)
                     edits.seek(0)
                     with open(proj, 'w') as out:
-                        out.write(edits.read())
+                        out.write(edits.read().encode('utf8'))
 
 
 
