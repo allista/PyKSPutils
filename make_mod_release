@@ -144,10 +144,9 @@ if __name__ == '__main__':
             for incpath in args.include:
                 zip_dir(zipf, incpath, exclude)
     #get commit history
-    tags = dict((t.commit.hexsha, t.name) for t in repo.tags if t.commit.hexsha != repo.head.commit.hexsha)
-    if repo.head != repo.heads.master:
-        branch = list_branch_only_commits(repo, repo.head, repo.heads.master)
-    else: branch = repo.iter_commits()
+    tags = dict((t.commit.hexsha, t.name) for t in repo.tags
+                if t.name.startswith('v') and t.commit.hexsha != repo.head.commit.hexsha)
+    branch = repo.iter_commits(rev=repo.head)
     commits = []
     for c in branch:
         if c.hexsha in tags: break
