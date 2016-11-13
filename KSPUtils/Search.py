@@ -131,8 +131,6 @@ class Term(list, _AbstractTerm):
         subpath = path[1:]
         if len(subpath) == 1:
             return cls._select_by_path(obj, subpath)
-        res = [cls._select_by_path(child, subpath)
-               for child in obj.children]
         return list(chain.from_iterable(objects for objects in
                           (cls._select_by_path(child, subpath)
                            for child in obj.children) if objects))
