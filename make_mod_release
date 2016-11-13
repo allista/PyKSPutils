@@ -85,6 +85,25 @@ def zip_dir(zipf, dirpath, exclude=None, prefix=''):
         os.chdir(cdir)
 
 
+def format_commit_message(msg):
+    lines = [line for line in (l.strip() for l in msg.splitlines()) if line]
+    if not lines: return None
+    if len(lines) == 1: return '* %s' % lines[0]
+    formatted = ['* %s' % lines[0]]
+    entry = None
+    for i in range(1, len(lines)):
+        l = lines[i]
+        if(not entry
+           or l.startswith('*') or len(l) < 2
+           or l[0].isupper() and l[1].islower()):
+            if entry:
+                formatted[-1] = ' '.join(entry)
+            entry = ['    * %s' % l.lstrip('* ')]
+            formatted.append(entry)
+        else: entry.append(l)
+    if entry: formatted[-1] = ' '.join(entry)
+    return '\n'.join(formatted)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Creates a KSP mod distribution and changelog file')
     parser.add_argument('-d', '--dir', metavar='path', dest='dir',
@@ -151,8 +170,7 @@ if __name__ == '__main__':
     for c in branch:
         if c.hexsha in tags: break
         commits.append(c)
-    changelog = ['[%s] %s' % (datetime.datetime.fromtimestamp(c.committed_date),
-                              c.message.replace('\n', ' ')) for c in sort_by_commit_date(commits)]
+    changelog = [format_commit_message(c.message) for c in sort_by_commit_date(commits)]
     #write changelog
     if changelog:
         print()
