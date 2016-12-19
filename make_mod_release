@@ -44,7 +44,7 @@ def parse_assembly_info(filename):
 
 
 def sort_by_commit_date(lst):
-    return sorted(lst, key=lambda c: c.committed_date, reverse=True)
+    return sorted(lst, key=lambda c: c.committed_date, reverse=False)
 
 
 def bfs_find_tag(head, tags):
@@ -64,7 +64,7 @@ def bfs_find_tag(head, tags):
 def list_branch_only_commits(repo, branch, reference):
     ref_commits = set(repo.iter_commits(rev=reference))
     branch_commits = [c for c in repo.iter_commits(rev=branch) if c not in ref_commits]
-    return sorted(branch_commits, key=lambda c: c.committed_date, reverse=True)
+    return sorted(branch_commits, key=lambda c: c.committed_date, reverse=False)
 
 
 def zip_dir(zipf, dirpath, exclude=None, prefix=''):
