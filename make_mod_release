@@ -13,7 +13,7 @@ import sys, os, re
 import fnmatch
 import argparse
 import zipfile
-import datetime
+from subprocess import check_output, CalledProcessError
 from collections import deque
 
 from git import Repo
@@ -25,6 +25,7 @@ exclude = ['*~']
 assembly_info = 'AssemblyInfo.cs'
 title_re = re.compile(r'.*AssemblyTitle\(\"(.*)\"\)\]')
 version_re = re.compile(r'.*AssemblyVersion\(\"(.*)\"\)\]')
+exif_version_re = re.compile(r'Product Version\s+: (.*)')
 
 
 def parse_assembly_info(filename):
@@ -42,6 +43,15 @@ def parse_assembly_info(filename):
     return _modname, _version
 #end def
 
+def get_version_from_dll(dllname):
+    try: output = check_output('exiftool %s' % dllname, shell=True)
+    except CalledProcessError as e:
+        print(str(e))
+        return None
+    match = exif_version_re.search(output)
+    if match is not None:
+        return match.group(1)
+    return None
 
 def sort_by_commit_date(lst):
     return sorted(lst, key=lambda c: c.committed_date, reverse=False)
@@ -106,29 +116,35 @@ def format_commit_message(msg):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Creates a KSP mod distribution and changelog file')
-    parser.add_argument('-d', '--dir', metavar='path', dest='dir',
-                        type=str, nargs=1, default=['.'],
+    parser.add_argument('-d', '--dir', metavar='path',
+                        type=str, default='.',
                         help='Path to the root directory of the mod.')
-    parser.add_argument('-s',  '--source', metavar='path', dest='source', 
-                        type=str, nargs=1, default=[],
+    parser.add_argument('-s',  '--source', metavar='path',
+                        type=str, default='',
                         help='Relative path to the source directory.')
-    parser.add_argument('-e',  '--exclude', metavar='paths', dest='exclude', 
+    parser.add_argument('-e',  '--exclude', metavar='paths',
                         type=str, nargs="*", default=[],
                         help='Files that should be excluded from the distribution. '
                         'Wildcards are supported.')
-    parser.add_argument('-i', '--include', metavar='paths', dest='include',
+    parser.add_argument('-i', '--include', metavar='paths',
                         type=str, nargs="*", default=[],
                         help='Paths that should be included into the distribution. '
                              'Exclude patterns are also applied here.')
+    parser.add_argument('-o', '--output-dir', metavar='path',
+                        type=str, default='',
+                        help='Path to the root directory of the mod.')
+    parser.add_argument('--dll', metavar='filename.dll',
+                        type=str, default='',
+                        help='Name of the dll to search for to get the actual mod version.')
     args = parser.parse_args()
     #go to the root dir
-    root = args.dir[0]
+    root = args.dir
     if not os.path.isdir(root):
         print('No such directory:', root)
         sys.exit(1)
     os.chdir(root)
     #use source and exclude
-    if args.source: sources = args.source
+    if args.source: sources = [args.source]
     if args.exclude: exclude += args.exclude
     #check if it is indeed the mod directory
     if not os.path.exists('./GameData'):
@@ -150,9 +166,27 @@ if __name__ == '__main__':
     if not modname or not version:
         print('Unable to determine mod name and version')
         sys.exit(3)
+    #if version is dynamic, use exiftool to get the actual version
+    if '*' in version:
+        if args.dll: dll = args.dll
+        else: dll = modname+'.dll'
+        new_version = None
+        if dll[0] in '/.':
+            new_version = get_version_from_dll(dll)
+        else:
+            found = False
+            for dirname, dirs, files in os.walk('./GameData'):
+                for f in files:
+                    if f == dll:
+                        found = True
+                        new_version = get_version_from_dll(os.path.join(dirname, f))
+                        break
+                if found: break
+        if new_version is not None:
+            version = new_version
     current = "%s-%s" % (modname, version)
     #make distribution package
-    releases = 'Releases'
+    releases = args.output_dir or 'Releases'
     try: os.mkdir(releases)
     except: pass
     release = join(releases, current+'.zip')
