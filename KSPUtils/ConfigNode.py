@@ -76,7 +76,7 @@ class ConfigNode(ValueCollection):
             else:
                 if line[0] == '}': return index+1
                 if index < nlines-1 and lines[index+1][0] == '{':
-                    subnode = node.AddNode(line[0])
+                    subnode = node.AddNode(line[0].strip(' \t\xef\xbb\xbf'))
                     index = cls._parse(lines, subnode, index+2)
                 else: index += 1
         return index
