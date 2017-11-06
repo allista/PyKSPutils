@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding=utf-8
 
 import argparse
@@ -38,14 +38,14 @@ if __name__ == '__main__':
                     for line in inp:
                         match = assembly_re.match(line)
                         if not match or ksprel == match.group(1):
-                            edits.write(line.decode('utf8'))
+                            edits.write(line)
                             continue
-                        edits.write(line.replace(match.group(1), ksprel).decode('utf8'))
+                        edits.write(line.replace(match.group(1), ksprel))
                         changed = True
                 if changed:
                     print('Changing references in: %s' % proj)
                     edits.seek(0)
-                    with open(proj, 'w') as out:
+                    with open(proj, 'wb') as out:
                         out.write(edits.read().encode('utf8'))
 
 
