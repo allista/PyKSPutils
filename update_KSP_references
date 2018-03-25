@@ -4,13 +4,14 @@
 import argparse
 import os
 import re
-
+import sys
 from io import StringIO
 
 assembly_re = re.compile(r'\s*<HintPath>(.*)\\KSP_Data\\Managed\\.*\.dll</HintPath>')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Changes references to KSP libraries in .csproj files.')
+    parser = argparse.ArgumentParser(description='Changes references to KSP libraries '
+                                                 'in .csproj files.')
     parser.add_argument('kspdir',
                         type=str,
                         help='Path to the KSP installation directory.')
@@ -18,12 +19,12 @@ if __name__ == '__main__':
     # check provided path
     if not os.path.isdir(args.kspdir):
         print('No such directory: %s' % args.kspdir)
-        os.exit(1)
+        sys.exit(1)
     datapath = os.path.join(args.kspdir, 'KSP_Data', 'Managed')
     if not os.path.isdir(datapath):
         print('Not a valid KSP installation.\n'
               'Directory not found: %s' % datapath)
-        os.exit(2)
+        sys.exit(2)
     # get project files, search for the references and change KSP paths
     kspfull = os.path.abspath(args.kspdir)
     for dirname, dirs, files in os.walk(os.curdir):
@@ -47,6 +48,3 @@ if __name__ == '__main__':
                     edits.seek(0)
                     with open(proj, 'wb') as out:
                         out.write(edits.read().encode('utf8'))
-
-
-

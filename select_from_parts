@@ -1,24 +1,22 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding=utf-8
 
-from __future__ import print_function
 
-import sys
 import argparse
+import sys
 
-from KSPUtils import ConfigNode
-from KSPUtils import Part, SearchTerm
-
+from KSPUtils import ConfigNode, Part, SearchTerm
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Search through part configurations for specific information '
-                                                 'and print it.')
+    parser = argparse.ArgumentParser(description='Search through part configurations for '
+                                                 'specific information and print it.')
     parser.add_argument('term', metavar='term',
                         type=str, nargs='+',
                         help='Selector term(s) of the form:\n'
                              'Node1[:name]/Node2[:name]/[Key:value]\n'
-                             'Each Node, node name, Key and value are interpreted as separate regular '
-                             'expressions. Node names may be omitted. Empty Node:name pair matches any node. '
+                             'Each Node, node name, Key and value are interpreted as '
+                             'separate regular expressions. Node names may be omitted. '
+                             'Empty Node:name pair matches any node. '
                              'The PART node may be omitted.')
     parser.add_argument('path', metavar='path',
                         type=str, default='.',
@@ -35,6 +33,8 @@ if __name__ == '__main__':
         if term[0].node.match('PART') is None:
             term.insert(0, SearchTerm.Node('PART'))
         terms.append(term)
+
+
     # parse parts
     def match_and_print(p):
         if p is None: return
@@ -43,6 +43,8 @@ if __name__ == '__main__':
             if not objects: continue
             if args.print_part: print(p.name)
             print('\n'.join(str(o) for o in objects))
+
+
     path = args.path
     if path == '-':  # stdin
         for p in Part.LoadFromNode(ConfigNode.FromText(sys.stdin.read())):

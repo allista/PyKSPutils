@@ -12,21 +12,21 @@ class MyTestCase(unittest.TestCase):
         n1 = n.AddNode('sub')
         n1.AddValue('c', 3)
         n1.AddValue('d', 4)
-        print
+        print()
         n
-        print
+        print()
         # parse
         n2 = ConfigNode('parsed')
         n2.Parse(str(n) + str(n))
-        print
+        print()
         n2
-        print
+        print()
         # get
-        print
+        print()
         n['a']
-        print
+        print()
         n.GetValue('b')
-        print
+        print()
         n.GetNode('sub')
 
 

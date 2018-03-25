@@ -72,20 +72,27 @@ class NamedObject(ValueCollection):
     @classmethod
     def mirror_value(cls, name, T=str):
         def getter(self):
-            try: return T(self.GetValue(name))
-            except: return None
-        def setter(self, val): self.SetValue(name, T(val))
+            try:
+                return T(self.GetValue(name))
+            except:
+                return None
+
+        def setter(self, val):
+            self.SetValue(name, T(val))
+
         setattr(cls, name, property(getter, setter))
 
     @classmethod
     def setup_children_dict(cls, name, typename):
         def children(self):
             return dict((c.name, c) for c in self.children.get_all(typename))
+
         def has_children(self, *names):
             d = getattr(self, name)
             return all(n in d for n in names) if d else False
+
         setattr(cls, name, property(children))
-        setattr(cls, 'has_'+name, has_children)
+        setattr(cls, 'has_' + name, has_children)
 
     def __init__(self):
         ValueCollection.__init__(self)
@@ -111,6 +118,8 @@ class NamedObject(ValueCollection):
         node = ConfigNode(self.type)
         self.save(node)
         return str(node)
+
+
 NamedObject.mirror_value('name')
 
 
@@ -123,10 +132,12 @@ Part.mirror_value('description')
 Part.setup_children_dict('resources', 'RESOURCE')
 Part.setup_children_dict('modules', 'MODULE')
 
+
 class Resource(NamedObject): pass
 Resource.register('RESOURCE')
 Resource.mirror_value('amount', float)
 Resource.mirror_value('maxAmount', float)
+
 
 class Module(NamedObject): pass
 Module.register('MODULE')

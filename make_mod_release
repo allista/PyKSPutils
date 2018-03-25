@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding=utf-8
 
 """
@@ -7,17 +7,17 @@ Created on Dec 3, 2015
 @author: Allis Tauri <allista@gmail.com>
 """
 
-from __future__ import print_function
-
-import sys, os, re
-import fnmatch
 import argparse
+import fnmatch
+import os
+import re
+import sys
 import zipfile
-from subprocess import check_output, CalledProcessError
 from collections import deque
+from os.path import join
+from subprocess import check_output, CalledProcessError
 
 from git import Repo
-from os.path import join
 
 sources = ['.', 'src', 'source', 'Source']
 exclude = ['*~']
@@ -37,14 +37,16 @@ def parse_assembly_info(filename):
                 match = title_re.match(line)
                 if not match:
                     match = version_re.match(line)
-                    if match: _version = 'v'+match.group(1)
-                else: _modname = match.group(1)
+                    if match: _version = 'v' + match.group(1)
+                else:
+                    _modname = match.group(1)
                 if _modname and _version: break
     return _modname, _version
-#end def
+
 
 def get_version_from_dll(dllname):
-    try: output = check_output('exiftool %s' % dllname, shell=True)
+    try:
+        output = check_output('exiftool %s' % dllname, shell=True)
     except CalledProcessError as e:
         print(str(e))
         return None
@@ -53,13 +55,17 @@ def get_version_from_dll(dllname):
         return match.group(1)
     return None
 
+
 def sort_by_commit_date(lst):
     return sorted(lst, key=lambda c: c.committed_date, reverse=False)
 
 
 def bfs_find_tag(head, tags):
     q = deque()
-    def add_parents(c): q.extend(sorted(c.parents, key=lambda c: c.committed_date))
+
+    def add_parents(c):
+        q.extend(sorted(c.parents, key=lambda c: c.committed_date))
+
     add_parents(head)
     visited = {head}
     while q:
@@ -87,7 +93,7 @@ def zip_dir(zipf, dirpath, exclude=None, prefix=''):
         for dirname, dirs, files in os.walk(dirpath):
             for f in files:
                 relpath = join(dirname, f)
-                if exclude and filter(lambda pat: fnmatch.fnmatch(relpath, pat), exclude): continue
+                if exclude and [pat for pat in exclude if fnmatch.fnmatch(relpath, pat)]: continue
                 arcpath = join(prefix, relpath) if prefix else relpath
                 print('Adding: %s' % arcpath)
                 zipf.write(relpath, arcpath)
@@ -103,29 +109,30 @@ def format_commit_message(msg):
     entry = None
     for i in range(1, len(lines)):
         l = lines[i]
-        if(not entry
-           or l.startswith('*') or len(l) < 2
-           or l[0].isupper() and l[1].islower()):
+        if not entry or l.startswith('*') or len(l) < 2 or l[0].isupper() and l[1].islower():
             if entry:
                 formatted[-1] = ' '.join(entry)
             entry = ['    * %s' % l.lstrip('* ')]
             formatted.append(entry)
-        else: entry.append(l)
+        else:
+            entry.append(l)
     if entry: formatted[-1] = ' '.join(entry)
     return '\n'.join(formatted)
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Creates a KSP mod distribution and changelog file')
+    parser = argparse.ArgumentParser(description='Creates a KSP mod distribution '
+                                                 'and changelog file')
     parser.add_argument('-d', '--dir', metavar='path',
                         type=str, default='.',
                         help='Path to the root directory of the mod.')
-    parser.add_argument('-s',  '--source', metavar='path',
+    parser.add_argument('-s', '--source', metavar='path',
                         type=str, default='',
                         help='Relative path to the source directory.')
-    parser.add_argument('-e',  '--exclude', metavar='paths',
+    parser.add_argument('-e', '--exclude', metavar='paths',
                         type=str, nargs="*", default=[],
                         help='Files that should be excluded from the distribution. '
-                        'Wildcards are supported.')
+                             'Wildcards are supported.')
     parser.add_argument('-i', '--include', metavar='paths',
                         type=str, nargs="*", default=[],
                         help='Paths that should be included into the distribution. '
@@ -137,25 +144,25 @@ if __name__ == '__main__':
                         type=str, default='',
                         help='Name of the dll to search for to get the actual mod version.')
     args = parser.parse_args()
-    #go to the root dir
+    # go to the root dir
     root = args.dir
     if not os.path.isdir(root):
         print('No such directory:', root)
         sys.exit(1)
     os.chdir(root)
-    #use source and exclude
+    # use source and exclude
     if args.source: sources = [args.source]
     if args.exclude: exclude += args.exclude
-    #check if it is indeed the mod directory
+    # check if it is indeed the mod directory
     if not os.path.exists('./GameData'):
         print('No %s/GameData directory.' % root)
         sys.exit(1)
-    #check repository
+    # check repository
     repo = Repo('.')
     if repo.bare:
         print('Git repository is empty')
         sys.exit(2)
-    #get mod name and current version
+    # get mod name and current version
     modname, version = None, None
     wd = os.path.abspath(os.curdir)
     for src in sources:
@@ -166,10 +173,12 @@ if __name__ == '__main__':
     if not modname or not version:
         print('Unable to determine mod name and version')
         sys.exit(3)
-    #if version is dynamic, use exiftool to get the actual version
+    # if version is dynamic, use exiftool to get the actual version
     if '*' in version:
-        if args.dll: dll = args.dll
-        else: dll = modname+'.dll'
+        if args.dll:
+            dll = args.dll
+        else:
+            dll = modname + '.dll'
         new_version = None
         if dll[0] in '/.':
             new_version = get_version_from_dll(dll)
@@ -185,18 +194,20 @@ if __name__ == '__main__':
         if new_version is not None:
             version = new_version
     current = "%s-%s" % (modname, version)
-    #make distribution package
+    # make distribution package
     releases = args.output_dir or 'Releases'
-    try: os.mkdir(releases)
-    except: pass
-    release = join(releases, current+'.zip')
+    try:
+        os.mkdir(releases)
+    except:
+        pass
+    release = join(releases, current + '.zip')
     print('Making release: %s\n' % release)
     with zipfile.ZipFile(release, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zip_dir(zipf, 'GameData', exclude)
         if args.include:
             for incpath in args.include:
                 zip_dir(zipf, incpath, exclude)
-    #get commit history
+    # get commit history
     tags = dict((t.commit.hexsha, t.name) for t in repo.tags
                 if t.name.startswith('v') and t.commit.hexsha != repo.head.commit.hexsha)
     branch = repo.iter_commits(rev=repo.head)
@@ -205,12 +216,12 @@ if __name__ == '__main__':
         if c.hexsha in tags: break
         commits.append(c)
     changelog = [format_commit_message(c.message) for c in sort_by_commit_date(commits)]
-    #write changelog
+    # write changelog
     if changelog:
         print()
         print('\n'.join(changelog))
-        chlog_file = join(releases, current+'.log') 
-        with open(chlog_file, 'w') as log:
-            log.write(u'\n'.join(changelog).encode('utf-8').strip())
+        chlog_file = join(releases, current + '.log')
+        with open(chlog_file, 'w', encoding='utf8') as log:
+            log.write('\n'.join(changelog).strip())
         print('\nChangeLog:', chlog_file)
     print('Done')

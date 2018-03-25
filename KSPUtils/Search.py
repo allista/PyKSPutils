@@ -1,8 +1,7 @@
-from __future__ import print_function
-
 import re
 from collections import Counter
 from itertools import chain
+
 from KSPUtils import NamedObject
 
 
@@ -43,15 +42,16 @@ class Term(list, _AbstractTerm):
             self.node = re.compile(node_name[0])
             self.name = None if len(node_name) < 2 else re.compile(node_name[1])
 
-        def __nonzero__(self): return self._nonzero
-        def __bool__(self): return self._nonzero
+        def __bool__(self):
+            return self._nonzero
 
         def __str__(self):
             if not self: return ''
             return (self.node.pattern if not self.name
                     else '%s:%s' % (self.node.pattern, self.name.pattern))
 
-        def __repr__(self): return str(self)
+        def __repr__(self):
+            return str(self)
 
         def match(self, obj):
             """
@@ -84,7 +84,6 @@ class Term(list, _AbstractTerm):
                 return self.node.match(val.name)
             return self.node.match(val.name) and self.name.match(val.value)
 
-
     def __init__(self, string):
         """
         :param string str: NODE:name1/SUBNODE:name2/SUBSUBNODE:name3/ValueName:value
@@ -96,7 +95,8 @@ class Term(list, _AbstractTerm):
     def __str__(self):
         return _AbstractTerm.__str__(self) + '/'.join(str(n) for n in self)
 
-    def __repr__(self): return str(self)
+    def __repr__(self):
+        return str(self)
 
     @classmethod
     def _match_path(cls, obj, path):
@@ -132,8 +132,8 @@ class Term(list, _AbstractTerm):
         if len(subpath) == 1:
             return cls._select_by_path(obj, subpath)
         return list(chain.from_iterable(objects for objects in
-                          (cls._select_by_path(child, subpath)
-                           for child in obj.children) if objects))
+                                        (cls._select_by_path(child, subpath)
+                                         for child in obj.children) if objects))
 
     def _match_object(self, obj):
         return self._match_path(obj, self)
@@ -175,7 +175,7 @@ class Query(_AbstractTerm):
         def __str__(self):
             return _AbstractTerm.__str__(self) + ('%s OR %s' % (self.term1, self.term2))
 
-    def __init__(self, term = None):
+    def __init__(self, term=None):
         _AbstractTerm.__init__(self)
         self.root = Group(term) if term else Group()
         self.last = self.root
@@ -199,7 +199,8 @@ class Query(_AbstractTerm):
     def __str__(self):
         return _AbstractTerm.__str__(self) + str(self.root)
 
-    def __repr__(self): return str(self)
+    def __repr__(self):
+        return str(self)
 
     AND = '&&'
     OR = '||'
@@ -208,6 +209,7 @@ class Query(_AbstractTerm):
 
     class _tree(list):
         def __init__(self, parent=None):
+            super().__init__()
             self.parent = parent
 
         def subtree(self):
@@ -224,12 +226,14 @@ class Query(_AbstractTerm):
         tree = cls._tree()
         cur = tree
         buf = []
+
         def flush(buffer):
             if buffer:
                 cur.extend(atom for atom in
                            (a.strip() for a in cls.op_re.split(''.join(buffer).strip()))
                            if atom)
             return []
+
         for i, l in enumerate(string):
             if l == '{':
                 buf = flush(buf)
@@ -237,7 +241,8 @@ class Query(_AbstractTerm):
             elif l == '}':
                 buf = flush(buf)
                 cur = cur.parent
-            else: buf.append(l)
+            else:
+                buf.append(l)
         flush(buf)
         while len(tree) == 1 and isinstance(tree[0], Query._tree):
             tree = tree[0]
@@ -248,6 +253,7 @@ class Query(_AbstractTerm):
     def _tree2query(cls, tree, root_node):
         query = cls()
         last_op = None
+
         def add(term):
             if last_op is None or last_op == cls.AND:
                 if root_node:
@@ -255,12 +261,14 @@ class Query(_AbstractTerm):
                     if term[0].node.match(root_node) is None:
                         term.insert(0, Term.Node(root_node))
                 query.And(term)
-            else: query.Or(term)
+            else:
+                query.Or(term)
+
         for leaf in tree:
             if leaf in cls.OPS:
                 last_op = leaf
             elif isinstance(leaf, Query._tree):
-                add(cls._tree2query(leaf).root)
+                add(cls._tree2query(leaf, root_node).root)
                 last_op = None
             else:
                 add(leaf)
@@ -284,4 +292,6 @@ class Query(_AbstractTerm):
 
 
 if __name__ == '__main__':
-    print(Query.Parse('sdf && {wetqew ||  asdljf} && {saldkjf ||   {asdl || kjf} && wet } || lask djg'))
+    print(Query.Parse('sdf && '
+                      '{wetqew ||  asdljf} && '
+                      '{saldkjf ||   {asdl || kjf} && wet } || lask djg'))

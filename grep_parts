@@ -1,26 +1,24 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding=utf-8
 
-from __future__ import print_function
 
-import sys
 import argparse
+import sys
 
-from KSPUtils import ConfigNode
-from KSPUtils import Part, SearchQuery
-
+from KSPUtils import ConfigNode, Part, SearchQuery
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Search through part configurations using complex query '
-                                                 'and print the parts found.')
+    parser = argparse.ArgumentParser(description='Search through part configurations using '
+                                                 'complex query and print the parts found.')
     parser.add_argument('query', metavar='query',
                         type=str,
                         help='Search query of the form:\n'
                              '{term1 || term2} && term3 ...\n'
                              'where "term" is of the form:\n'
                              '[^]Node1[:name]/Node2[:name]/[Key:value]\n'
-                             'Each Node, node name, Key and value are interpreted as separate regular '
-                             'expressions. Node names may be omitted. Empty Node:name pair matches any node. '
+                             'Each Node, node name, Key and value are interpreted as '
+                             'separate regular expressions. Node names may be omitted. '
+                             'Empty Node:name pair matches any node. '
                              'The ^ sign negates the term, meaning "everything except that". '
                              'Logical operations and brackets are supported. '
                              'The PART node may be omitted.')
@@ -33,13 +31,17 @@ if __name__ == '__main__':
     try:
         query = SearchQuery.Parse(args.query, 'PART')
     except ValueError as e:
-        print(e.message)
+        print(str(e))
         sys.exit(1)
+
+
     # parse parts
     def match_and_print(p):
         if p is None: return
         if query.match(p):
             print('%s\n' % p)
+
+
     for path in args.path:
         if path == '-':  # stdin
             for p in Part.LoadFromNode(ConfigNode.FromText(sys.stdin.read())):
