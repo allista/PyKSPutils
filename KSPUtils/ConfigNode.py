@@ -97,7 +97,7 @@ class ConfigNode(ValueCollection):
             if idx > 0:
                 lines.insert(l, line[:idx])
                 line = line[idx:]
-                l += 1;
+                l += 1
                 idx = 0
                 lines[l] = line
             if idx < len(line) - 1:
