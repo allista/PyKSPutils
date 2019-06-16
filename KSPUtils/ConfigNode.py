@@ -112,7 +112,7 @@ class ConfigNode(ValueCollection):
         l = len(lines)
         while l > 0:
             l -= 1
-            line = lines[l]
+            line = lines[l].strip()
             try:
                 idx = line.index('//')
                 if idx == 0:
