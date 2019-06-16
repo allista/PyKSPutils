@@ -65,7 +65,7 @@ class ConfigNode(ValueCollection):
         return node
 
     def Save(self, filename):
-        with open(filename, 'w') as out:
+        with open(filename, 'w', encoding='utf8') as out:
             out.write(str(self).strip('\n\r'))
 
     @classmethod
