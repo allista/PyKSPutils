@@ -57,8 +57,11 @@ class ConfigNode(ValueCollection):
     @classmethod
     def Load(cls, filename):
         node = cls()
-        with open(filename) as inp:
-            node.Parse(inp.read())
+        try:
+            with open(filename, encoding='utf8') as inp:
+                node.Parse(inp.read())
+        except Exception as exc:
+            print(f'Unable to parse {filename}: {exc!s}')
         return node
 
     def Save(self, filename):
