@@ -2,7 +2,7 @@ import re
 from collections import Counter
 from itertools import chain
 
-from KSPUtils import NamedObject
+from .Objects import NamedObject
 
 
 class _AbstractTerm(object):
