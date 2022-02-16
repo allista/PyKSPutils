@@ -16,4 +16,9 @@ setup(
         "update_KSP_references",
         "make_mod_release",
     ],
+    entry_points={
+        "console_scripts": [
+            "check_project = KSPUtils.scripts.check_project:cmd",
+        ],
+    },
 )
