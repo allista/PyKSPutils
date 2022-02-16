@@ -10,4 +10,5 @@ setup(
         author_email='allista@gmail.com',
         description='A collection of tools and utility classes for KSP modders.'
     packages=find_packages(),
+    python_requires=">=3.8",
 )
