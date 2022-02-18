@@ -3,7 +3,7 @@ from typing import Union
 
 from git import Tag
 
-from .versions import AssemblyVersion, TagVersion
+from KSPUtils.versions import AssemblyVersion, TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
@@ -48,6 +48,9 @@ def get_changelog_version(name: str, *paths: Union[str, Path]) -> TagVersion:
 
 
 def get_git_tag_version(tag: Tag) -> TagVersion:
+    """
+    Creates TagVersion from a git Tag
+    """
     return TagVersion.from_str(
         tag.name, tag.commit.authored_datetime, commit_sha=tag.commit.hexsha
     )
