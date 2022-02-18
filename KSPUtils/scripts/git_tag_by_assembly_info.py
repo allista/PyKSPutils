@@ -1,17 +1,10 @@
 import sys
-from pathlib import Path
-from typing import List
 
 import click
 
-from KSPUtils.git_utils import get_repo, latest_tag
-from KSPUtils.project_info import (
-    get_assembly_version,
-    get_changelog_version,
-    get_git_tag_version,
-)
-from .execution_context import ExecutionContext
-from .utils import get_search_paths
+from KSPUtils.project_info.csharp_project import CSharpProject
+from KSPUtils.project_info.versions import get_git_tag_version
+from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
 
 
 def on_error(message: str, exit_code: int) -> None:
@@ -19,29 +12,18 @@ def on_error(message: str, exit_code: int) -> None:
     sys.exit(exit_code)
 
 
-@click.command(
-    "git_tag_by_assembly_info",
-)
+cmd = create_project_cmd(on_error)
+
+
+@cmd.command("create")
 @click.option(
     "--require-branch",
     default="master",
     show_default=True,
     help="Require this branch to be checked out to create the tag",
 )
-@click.option(
-    "--change-log",
-    default="ChangeLog.md",
-    type=click.Path(),
-    show_default=True,
-    help="The name of the changelog file to search for the version",
-)
-@click.option(
-    "--add-search-path",
-    multiple=True,
-    default=[],
-    help="Additional paths to search for project sources and change log",
-)
-def cmd(change_log: str, require_branch: str, add_search_path: List[str]) -> None:
+@pass_project
+def create_tag(project: CSharpProject, require_branch: str) -> None:
     """
     Creates lightweight git tag named after AssemblyVersion from AssemblyInfo.cs
     The version is prefixed with "v", e.g. "v1.2.3".
@@ -57,64 +39,89 @@ def cmd(change_log: str, require_branch: str, add_search_path: List[str]) -> Non
         - a git tag with this version should not exist
         - the latest existing git tag with a version should not be on HEAD commit
     """
-    cwd = Path.cwd()
-    search_paths = get_search_paths(cwd, *add_search_path)
-    context = ExecutionContext(on_error, ValueError)
-    with context("Git", 1):
-        repo = get_repo(cwd)
-        if repo is None or repo.bare:
-            context.error(f"Need non-bare git repo at {cwd}")
-        elif repo.is_dirty():
-            context.error(f"Repo is dirty at {cwd}")
-        if repo.active_branch.name != require_branch:
-            context.error(f"Not on the '{require_branch}' branch")
-    # acquire versions from git, changelog and AssemblyVersion
-    with context("Git tag", 2):
-        tag = latest_tag(repo)
-        git_tag_version = None
-        if tag is not None:
-            try:
-                git_tag_version = get_git_tag_version(tag)
-            except ValueError:
+    if project.context.failed:
+        sys.exit(project.context.exit_code)
+    with project.context(project.BLOCK_GIT):
+        if project.repo.active_branch.name != require_branch:
+            project.error(f"Not on the '{require_branch}' branch")
+    with project.context(project.BLOCK_GIT_TAG):
+        if project.latest_tag:
+            if not project.git_tag_version:
                 click.echo(
-                    f"WARNING: Unable to parse latest git tag: {tag.name}", err=True
+                    f"WARNING: Unable to parse latest git tag: {project.latest_tag.name}",
+                    err=True,
                 )
             else:
-                if tag.commit == repo.head.commit:
-                    context.error(f"The latest git tag {tag.name} is on the HEAD")
-    with context("AssemblyInfo", 3):
-        assembly_version = get_assembly_version(*search_paths)
-    with context("ChangeLog", 4):
-        change_log_version = get_changelog_version(change_log, *search_paths)
-    # check if the versions satisfy pre-release conditions
-    with context("Assembly vs ChangeLog", 4):
-        if assembly_version > change_log_version:
-            context.error(
-                f"Assembly version {assembly_version} is greater than the ChangeLog version {change_log_version}\n"
-                f"Fill in the changelog entry for {assembly_version}",
+                if project.latest_tag.commit == project.repo.head.commit:
+                    project.error(
+                        f"The latest git tag {project.latest_tag.name} is on the HEAD"
+                    )
+    with project.context("Assembly vs ChangeLog"):
+        if project.assembly_version > project.change_log_version:
+            project.error(
+                f"Assembly version {project.assembly_version} is greater "
+                f"than the ChangeLog version {project.change_log_version}\n"
+                f"Fill in the changelog entry for {project.assembly_version}",
             )
-    with context("Git tag version", 5):
-        if git_tag_version:
-            if git_tag_version > assembly_version:
-                context.error(
-                    f"Assembly version {assembly_version} is less than the git tag version {git_tag_version}.\n"
+    with project.context("Git tag version"):
+        if project.git_tag_version:
+            if project.git_tag_version > project.assembly_version:
+                project.error(
+                    f"Assembly version {project.assembly_version} is less "
+                    f"than the git tag version {project.git_tag_version}.\n"
                     f"Did you forget to update AssemblyInfo and ChangeLog?",
                 )
-            if git_tag_version == assembly_version:
-                context.error(
-                    f"Assembly version {assembly_version} is equal to the latest git tag version.\n"
+            if project.git_tag_version == project.assembly_version:
+                project.error(
+                    f"Assembly version {project.assembly_version} is equal to the latest git tag version.\n"
                     "You have to investigate and remove the tag manually.",
                 )
-    if not context.failed:
+    if not project.context.failed:
         click.echo(
             f"Creating new lightweight tag at the HEAD of the '{require_branch}' branch:\n"
-            f"{assembly_version!r} on {repo.head.commit.hexsha[:7]} <- HEAD"
+            f"{project.assembly_version!r} on {project.repo.head.commit.hexsha[:7]} <- HEAD"
         )
-        if git_tag_version:
-            click.echo(f'{git_tag_version!r}')
-        with context("New git tag", 6):
-            new_tag = repo.create_tag(f'{assembly_version}')
+        if project.git_tag_version:
+            click.echo(f"{project.git_tag_version!r}")
+        with project.context("New git tag"):
+            new_tag = project.repo.create_tag(f"{project.assembly_version}")
             new_tag_version = get_git_tag_version(new_tag)
             click.echo(f"Created new tag: {new_tag_version!r}")
-    click.echo()
-    sys.exit(context.exit_code)
+    sys.exit(project.context.exit_code)
+
+
+@cmd.command("remove")
+@pass_project
+def remove_tag(project: CSharpProject) -> None:
+    """
+    Removes git tag named after AssemblyVersion from AssemblyInfo.cs
+
+    Some conditions are checked before the tag is removed:
+
+    \b
+        - the git tag with this version should be the latest tag
+    """
+    if project.context.failed:
+        sys.exit(project.context.exit_code)
+    with project.context(project.BLOCK_GIT_TAG):
+        if not project.latest_tag:
+            project.error("No tag found")
+        if not project.git_tag_version:
+            project.error(
+                f"Unable to parse latest git tag: {project.latest_tag.name}",
+            )
+    with project.context("Assembly vs Git tag"):
+        if project.assembly_version != project.git_tag_version:
+            project.error(
+                "Assembly version does not match the latest git tag:\n"
+                f"Assembly: {project.assembly_version!r}\n"
+                f"Git tag:  {project.git_tag_version!r}"
+            )
+
+    if not project.context.failed:
+        with project.context("Remove git tag"):
+            click.echo(f"Removing the tag: {project.git_tag_version!r}")
+            project.repo.delete_tag(project.latest_tag)
+            project.update_latest_tag()
+            click.echo(f"Latest tag now: {project.git_tag_version!r}")
+    sys.exit(project.context.exit_code)
