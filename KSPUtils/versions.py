@@ -161,9 +161,9 @@ class TagVersion(RegexVersionBase):
 
 
 @dataclass(frozen=True, repr=False, eq=False)
-class KSPVersion(AssemblyVersion):
+class KSPAssemblyVersion(AssemblyVersion):
     """
-    Representation of KSPVersion info
+    Representation of KSPAssembly version info
     """
 
     _re = re.compile(
