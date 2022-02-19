@@ -175,6 +175,26 @@ class KSPAssemblyVersion(AssemblyVersion):
 
 
 @dataclass(frozen=True, repr=False, eq=False)
+class MinKSPVersion(RegexVersionBase):
+    """
+    Representation of a MinKSPVersion from AssemblyInfo.cs
+    """
+
+    _KSPVersion = r"KSPVersion *= *new Version\( *(?P<major>\d+) *, *(?P<minor>\d+) *(, *(?P<build>\d)+ *)?\) *;"
+
+    _re = re.compile(r"\s*Min" + _KSPVersion)
+
+
+@dataclass(frozen=True, repr=False, eq=False)
+class MaxKSPVersion(MinKSPVersion):
+    """
+    Representation of a MaxKSPVersion from AssemblyInfo.cs
+    """
+
+    _re = re.compile(r"\s*Max" + MinKSPVersion._KSPVersion)
+
+
+@dataclass(frozen=True, repr=False, eq=False)
 class FilenameVersion(AssemblyVersion):
     """
     Representation of a version from file name
