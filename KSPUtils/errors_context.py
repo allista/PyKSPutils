@@ -20,7 +20,7 @@ class ErrorsContext:
     It can also handle exceptions.
     """
 
-    message_template = "[{block}] {message}"
+    message_template = "[{block.name}] {message}"
 
     def __init__(
         self,
