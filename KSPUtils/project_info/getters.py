@@ -3,13 +3,14 @@ from typing import Union
 
 from git import Tag
 
-from KSPUtils.versions import AssemblyVersion, TagVersion
+from KSPUtils.assembly_info import AssemblyInfo
+from KSPUtils.versions import TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
 
 
-def get_assembly_version(*paths: Union[str, Path]) -> AssemblyVersion:
+def get_assembly_info(*paths: Union[str, Path]) -> AssemblyInfo:
     """
     Returns AssemblyVersion from AssemblyInfo.cs file
 
@@ -24,7 +25,7 @@ def get_assembly_version(*paths: Union[str, Path]) -> AssemblyVersion:
             file_path = base_path / _properties / _assembly_info
         if not file_path.is_file():
             continue
-        return AssemblyVersion.from_file(file_path)
+        return AssemblyInfo.from_file(file_path)
     paths_combined = "\n".join(f"{p}" for p in paths)
     raise ValueError(f"Unable to find {_assembly_info} within:\n{paths_combined}")
 
@@ -52,5 +53,5 @@ def get_git_tag_version(tag: Tag) -> TagVersion:
     Creates TagVersion from a git Tag
     """
     return TagVersion.from_str(
-        tag.name, tag.commit.authored_datetime, commit_sha=tag.commit.hexsha
+        tag.name, date=tag.commit.authored_datetime, commit_sha=tag.commit.hexsha
     )

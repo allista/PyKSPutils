@@ -5,13 +5,11 @@ from various sources like git tags, changelogs and AssemblyInfo.cs files
 
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Match, Optional, Type, Union
 
-_T = TypeVar("_T", bound="VersionBase")
-
-_VersionArgs = Dict[str, Optional[Union[int, str, datetime]]]
+from KSPUtils.regex_extractor import RegexExtractor, RegexExtractorType
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -59,35 +57,9 @@ class VersionBase:
     def __gt__(self, other):
         return self >= other and self != other
 
-    @classmethod
-    def _parse(cls, text: str) -> _VersionArgs:
-        raise NotImplementedError()
-
-    @classmethod
-    def from_str(
-        cls: Type[_T], text: str, date: Optional[datetime] = None, **kwargs: Any
-    ) -> _T:
-        """Creates Version from string"""
-        args = cls._parse(text)
-        if date is not None:
-            args["date"] = date
-        args.update(kwargs)
-        return cls(**args)
-
-    @classmethod
-    def from_file(cls: Type[_T], filename: Union[str, Path]) -> _T:
-        """
-        Creates Version from a file
-        """
-        filepath = Path(filename).resolve()
-        mod_time = datetime.fromtimestamp(
-            filepath.stat().st_mtime, timezone.utc
-        ).astimezone()
-        return cls.from_str(filepath.read_text("utf8"), mod_time)
-
 
 @dataclass(frozen=True, repr=False, eq=False)
-class RegexVersionBase(VersionBase):
+class RegexVersionBase(VersionBase, RegexExtractor):
     """
     Version info found in text using regex
     """
@@ -95,18 +67,12 @@ class RegexVersionBase(VersionBase):
     _re = re.compile("")
 
     @classmethod
-    def _parse(cls, text: str) -> _VersionArgs:
-        """
-        Create Version from text using regex
-        """
-        ver = next(cls._re.finditer(text), None)
-        if ver is None:
-            raise ValueError("Unable to find Version in the text")
-        rev = ver.group("revision")
+    def _extract(cls, match: Match) -> Dict[str, Any]:
+        rev = match.group("revision")
         return {
-            "major": int(ver.group("major")),
-            "minor": int(ver.group("minor")),
-            "build": int(ver.group("build") or 0),
+            "major": int(match.group("major")),
+            "minor": int(match.group("minor")),
+            "build": int(match.group("build") or 0),
             "revision": int(rev) if rev else None,
         }
 
@@ -117,28 +83,11 @@ class AssemblyVersion(RegexVersionBase):
     Representation of AssemblyVersion info
     """
 
-    title: Optional[str] = None
-
     _re = re.compile(
         r'\[assembly: +AssemblyVersion\("'
         r"(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
         r'"\)]'
     )
-
-    _title_re = re.compile(r"\[assembly: +AssemblyTitle\(\"(?P<title>.*)\"\)]")
-
-    def __repr__(self):
-        res = super().__repr__()
-        if self.title:
-            return f"{res} [{self.title}]"
-        return res
-
-    @classmethod
-    def _parse(cls, text: str) -> _VersionArgs:
-        args = super()._parse(text)
-        match = next(cls._title_re.finditer(text), None)
-        args["title"] = match.group("title") if match else None
-        return args
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -161,7 +110,7 @@ class TagVersion(RegexVersionBase):
 
 
 @dataclass(frozen=True, repr=False, eq=False)
-class KSPAssemblyVersion(AssemblyVersion):
+class KSPAssemblyVersion(RegexVersionBase):
     """
     Representation of KSPAssembly version info
     """
@@ -169,6 +118,13 @@ class KSPAssemblyVersion(AssemblyVersion):
     _re = re.compile(
         r'\[assembly: +KSPAssembly\("\w+", +(?P<major>\d+), +(?P<minor>\d+)\)]'
     )
+
+    @classmethod
+    def _extract(cls, match: Match) -> Dict[str, Any]:
+        return {
+            "major": int(match.group("major")),
+            "minor": int(match.group("minor")),
+        }
 
     def __str__(self) -> str:
         return f"v{self.major}.{self.minor}"
@@ -184,6 +140,14 @@ class MinKSPVersion(RegexVersionBase):
 
     _re = re.compile(r"\s*Min" + _KSPVersion)
 
+    @classmethod
+    def _extract(cls, match: Match) -> Dict[str, Any]:
+        return {
+            "major": int(match.group("major")),
+            "minor": int(match.group("minor")),
+            "build": int(match.group("build") or 0),
+        }
+
 
 @dataclass(frozen=True, repr=False, eq=False)
 class MaxKSPVersion(MinKSPVersion):
@@ -194,27 +158,46 @@ class MaxKSPVersion(MinKSPVersion):
     _re = re.compile(r"\s*Max" + MinKSPVersion._KSPVersion)
 
 
+@dataclass(frozen=True)
+class FilenameTitle(RegexExtractor):
+    title: str = ""
+
+    _re = re.compile(r"^(?P<title>.*)-.*")
+
+    @classmethod
+    def _extract(cls, match: Match) -> Dict[str, Any]:
+        return {"title": match.group("title")}
+
+
 @dataclass(frozen=True, repr=False, eq=False)
-class FilenameVersion(AssemblyVersion):
+class FilenameVersion(RegexVersionBase):
     """
     Representation of a version from file name
     """
 
+    title: str = ""
     filename: str = ""
 
     _re = re.compile(
         r"v?(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
     )
 
-    _title_re = re.compile(r"^(?P<title>.*)-.*")
+    def __repr__(self):
+        return f"{super().__repr__()} [{self.title}]"
 
     @classmethod
-    def from_file(cls: Type[_T], filename: Union[str, Path]) -> _T:
+    def from_file(
+        cls: Type[RegexExtractorType], filename: Union[str, Path], **kwargs: Any
+    ) -> RegexExtractorType:
         """
         Creates Version from file name
         """
-        filepath = Path(filename).resolve()
-        mod_time = datetime.fromtimestamp(
-            filepath.stat().st_mtime, timezone.utc
-        ).astimezone()
-        return cls.from_str(filepath.name, mod_time, filename=filepath.name)
+        filepath, mod_time = cls._resolve_path(filename)
+        title = FilenameTitle.from_str(filepath.name)
+        return cls.from_str(
+            filepath.name,
+            date=mod_time,
+            title=title.title,
+            filename=filepath.name,
+            **kwargs,
+        )

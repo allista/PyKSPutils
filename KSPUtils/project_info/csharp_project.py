@@ -3,11 +3,12 @@ from typing import Optional, Union, cast
 
 from git import Repo, Tag
 
+from KSPUtils.assembly_info import AssemblyInfo
 from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
 from KSPUtils.path_utils import get_search_paths
-from KSPUtils.project_info.versions import (
-    get_assembly_version,
+from KSPUtils.project_info.getters import (
+    get_assembly_info,
     get_changelog_version,
     get_git_tag_version,
 )
@@ -35,12 +36,12 @@ class CSharpProject:
         self.search_paths = get_search_paths(self.path, *search_paths)
         self.change_log_name = change_log
         self.context = errors_context or ErrorsContext(ValueError)
-        self.assembly_version: Optional[AssemblyVersion] = None
+        self.assembly_info: Optional[AssemblyInfo] = None
         self.change_log_version: Optional[TagVersion] = None
         self.repo: Optional[Repo] = None
         self.latest_tag: Optional[Tag] = None
         self.git_tag_version: Optional[TagVersion] = None
-        self.update_assembly_version()
+        self.update_assembly_info()
         self.update_changelog_version()
         with self.context(self.BLOCK_GIT):
             self.repo = get_repo(self.path)
@@ -51,9 +52,13 @@ class CSharpProject:
                 self.error(f"Repo is dirty at {self.path}")
         self.update_latest_tag()
 
-    def update_assembly_version(self):
+    @property
+    def assembly_version(self) -> Optional[AssemblyVersion]:
+        return self.assembly_info.assembly_version if self.assembly_info else None
+
+    def update_assembly_info(self):
         with self.context(self.BLOCK_ASSEMBLY_INFO):
-            self.assembly_version = get_assembly_version(*self.search_paths)
+            self.assembly_info = get_assembly_info(*self.search_paths)
 
     def update_changelog_version(self):
         with self.context(self.BLOCK_CHANE_LOG):

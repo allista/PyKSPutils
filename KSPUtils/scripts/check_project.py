@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from textwrap import indent
 from typing import Optional
 
 import click
@@ -17,9 +18,14 @@ BLOCK_VERSIONS = "Version check"
 @pass_project
 def show_versions(project: CSharpProject) -> None:
     click.echo(
-        f"Assembly:  {project.assembly_version!r}\n"
-        f"ChangeLog: {project.change_log_version!r}\n"
-        f"Git tag:   {project.git_tag_version!r}\n",
+        "\n".join(
+            (
+                f"Assembly Info:",
+                indent(f"{project.assembly_info}", "  "),
+                f"ChangeLog: {project.change_log_version!r}",
+                f"Git tag:   {project.git_tag_version!r}",
+            )
+        )
     )
 
 
@@ -66,7 +72,7 @@ def for_merge(project: CSharpProject, require_branch: str) -> None:
             f"You can merge the '{require_branch}' into your stable branch\n"
             f"in {project.path}\n"
             f"Upcoming release:\n"
-            f"{project.assembly_version!r}"
+            f"{project.assembly_info!r}"
         )
         if project.git_tag_version is not None:
             click.echo(f"Previous release:\n{project.git_tag_version!r}")
@@ -146,7 +152,7 @@ def check_archive(
         click.echo(f"No {only_if_exists} found.\nSkipping {project.path}")
         sys.exit(0)
     with project.context(BLOCK_VERSIONS):
-        if project.assembly_version:
+        if project.assembly_info:
             archives = Path(archives_path)
             archive_version: Optional[FilenameVersion] = None
             for filepath in archives.iterdir():
@@ -154,10 +160,7 @@ def check_archive(
                     file_version = FilenameVersion.from_file(filepath)
                 except ValueError:
                     continue
-                if (
-                    file_version
-                    and file_version.title == project.assembly_version.title
-                ):
+                if file_version and file_version.title == project.assembly_info.title:
                     archive_version = file_version
                     if archive_version != project.assembly_version:
                         project.error(
@@ -172,6 +175,6 @@ def check_archive(
                     break
             if not archive_version:
                 project.error(
-                    f"No archive for {project.assembly_version.title} is found within\n{archives}"
+                    f"No archive for {project.assembly_info.title} is found within\n{archives}"
                 )
     sys.exit(project.context.exit_code)

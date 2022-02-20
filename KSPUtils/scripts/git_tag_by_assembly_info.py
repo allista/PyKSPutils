@@ -3,7 +3,7 @@ import sys
 import click
 
 from KSPUtils.project_info.csharp_project import CSharpProject
-from KSPUtils.project_info.versions import get_git_tag_version
+from KSPUtils.project_info.getters import get_git_tag_version
 from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
 
 
