@@ -29,3 +29,8 @@ class AssemblyTitle(TitleExtractorBase):
     """Title of the Assembly as defined in the AssemblyInfo.cs text"""
 
     _re = re.compile(r"\[assembly: +AssemblyTitle\(\"(?P<title>.*)\"\)]")
+
+
+@dataclass(frozen=True)
+class FilenameTitle(TitleExtractorBase):
+    _re = re.compile(r"^(?P<title>.*)-.*")

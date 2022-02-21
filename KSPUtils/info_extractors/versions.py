@@ -11,6 +11,7 @@ from typing import Any, Dict, Match, Optional, Type
 
 from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.regex_extractor import RegexExtractor, RegexExtractorType
+from KSPUtils.info_extractors.titles import FilenameTitle
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -157,17 +158,6 @@ class MaxKSPVersion(MinKSPVersion):
     """
 
     _re = re.compile(r"\s*Max" + MinKSPVersion._KSPVersion)
-
-
-@dataclass(frozen=True)
-class FilenameTitle(RegexExtractor):
-    title: str = ""
-
-    _re = re.compile(r"^(?P<title>.*)-.*")
-
-    @classmethod
-    def _extract(cls, match: Match) -> Dict[str, Any]:
-        return {"title": match.group("title")}
 
 
 @dataclass(frozen=True, repr=False, eq=False)
