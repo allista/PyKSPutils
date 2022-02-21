@@ -1,35 +1,15 @@
-import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Match, Optional
+from typing import Optional
 
 from KSPUtils.info_extractors.file_extractor import FileExtractor, StrPath
-from KSPUtils.info_extractors.regex_extractor import (
-    RegexExtractor,
-)
+from KSPUtils.info_extractors.titles import AssemblyTitle
 from KSPUtils.info_extractors.versions import (
     AssemblyVersion,
     KSPAssemblyVersion,
     MaxKSPVersion,
     MinKSPVersion,
 )
-
-
-@dataclass(frozen=True, repr=False)
-class AssemblyTitle(RegexExtractor):
-    title: Optional[str] = None
-
-    _re = re.compile(r"\[assembly: +AssemblyTitle\(\"(?P<title>.*)\"\)]")
-
-    def __str__(self):
-        return self.title
-
-    def __repr__(self):
-        return self.__str__()
-
-    @classmethod
-    def _extract(cls, match: Match) -> Dict[str, Any]:
-        return {"title": match.group("title")}
 
 
 @dataclass(frozen=True, repr=False)
