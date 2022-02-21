@@ -1,8 +1,9 @@
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, Match, Optional
+from typing import Any, Dict, Match, Optional, Type
 
-from KSPUtils.info_extractors.regex_extractor import RegexExtractor
+from KSPUtils.info_extractors.file_extractor import StrPath
+from KSPUtils.info_extractors.regex_extractor import RegexExtractor, RegexExtractorType
 
 
 @dataclass(frozen=True, repr=False)
@@ -22,6 +23,18 @@ class TitleExtractorBase(RegexExtractor):
     @classmethod
     def _extract(cls, match: Match) -> Dict[str, Any]:
         return {"title": match.group("title")}
+
+    @classmethod
+    def _as_str(cls, instance: Optional["TitleExtractorBase"]) -> Optional[str]:
+        return instance.title if instance else None
+
+    @classmethod
+    def from_str_as_str(cls, text: str) -> Optional[str]:
+        return cls._as_str(cls.from_str(text))
+
+    @classmethod
+    def from_file_as_str(cls, filename: StrPath) -> Optional[str]:
+        return cls._as_str(cls.from_file(filename))
 
 
 @dataclass(frozen=True, repr=False)
