@@ -44,6 +44,22 @@ class AssemblyTitle(TitleExtractorBase):
     _re = re.compile(r"\[assembly: +AssemblyTitle\(\"(?P<title>.*)\"\)]")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class FilenameTitle(TitleExtractorBase):
+    """Just a file name without the last extension"""
+
+    _re = re.compile(r"^(?P<title>.*)\..*")
+
+    @classmethod
+    def from_file(
+        cls: Type[RegexExtractorType], filename: StrPath, **kwargs: Any
+    ) -> Optional[RegexExtractorType]:
+        filepath, _ = cls._resolve_path(filename)
+        return cls.from_str(filepath.name, **kwargs)
+
+
+@dataclass(frozen=True, repr=False)
+class ArchiveTitle(FilenameTitle):
+    """The name of a file before the last dash"""
+
     _re = re.compile(r"^(?P<title>.*)-.*")

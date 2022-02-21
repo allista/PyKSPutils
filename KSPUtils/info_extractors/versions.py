@@ -11,7 +11,7 @@ from typing import Any, Dict, Match, Optional, Type
 
 from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.regex_extractor import RegexExtractor, RegexExtractorType
-from KSPUtils.info_extractors.titles import FilenameTitle
+from KSPUtils.info_extractors.titles import ArchiveTitle, FilenameTitle
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -186,25 +186,29 @@ class FilenameVersion(RegexVersionBase):
         Creates Version from file name
         """
         filepath, mod_time = cls._resolve_path(filename)
-        title = FilenameTitle.from_str(filepath.name)
         return cls.from_str(
             filepath.name,
             date=mod_time,
-            title=title.title,
             filename=filepath.name,
             **kwargs,
         )
 
 
-@dataclass(frozen=True)
-class FileTitle(FilenameTitle):
-    title: str = ""
-
-    _re = re.compile(r"^(?P<title>.*)\..*")
+@dataclass(frozen=True, repr=False, eq=False)
+class ArchiveVersion(FilenameVersion):
+    """
+    Representation of a version from a mod archive
+    """
 
     @classmethod
-    def _extract(cls, match: Match) -> Dict[str, Any]:
-        return {"title": match.group("title")}
+    def from_file(
+        cls: Type[RegexExtractorType],
+        filename: StrPath,
+        **kwargs: Any,
+    ) -> RegexExtractorType:
+        return super().from_file(
+            filename, title=ArchiveTitle.from_file_as_str(filename)
+        )
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -227,5 +231,9 @@ class ExifVersion(FilenameVersion):
         except CalledProcessError as e:
             print(f"{e}")
             return None
-        title = FileTitle.from_str(filepath.name)
-        return cls.from_str(output, date=mod_time, title=title.title if title else None)
+        return cls.from_str(
+            output,
+            title=FilenameTitle.from_str_as_str(filepath.name),
+            date=mod_time,
+            **kwargs,
+        )

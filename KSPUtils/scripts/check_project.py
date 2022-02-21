@@ -5,7 +5,7 @@ from typing import Optional
 
 import click
 
-from KSPUtils.info_extractors.versions import FilenameVersion
+from KSPUtils.info_extractors.versions import ArchiveVersion
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
 
@@ -154,10 +154,10 @@ def check_archive(
     with project.context(BLOCK_VERSIONS):
         if project.assembly_info:
             archives = Path(archives_path)
-            archive_version: Optional[FilenameVersion] = None
+            archive_version: Optional[ArchiveVersion] = None
             for filepath in archives.iterdir():
                 try:
-                    file_version = FilenameVersion.from_file(filepath)
+                    file_version = ArchiveVersion.from_file(filepath)
                 except ValueError:
                     continue
                 if file_version and file_version.title == project.assembly_info.title:
