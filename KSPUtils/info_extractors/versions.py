@@ -10,7 +10,7 @@ from pathlib import Path
 from subprocess import CalledProcessError, check_output
 from typing import Any, Dict, Match, Optional, Type, Union
 
-from KSPUtils.regex_extractor import RegexExtractor, RegexExtractorType
+from KSPUtils.info_extractors.regex_extractor import RegexExtractor, RegexExtractorType
 
 
 @dataclass(frozen=True, repr=False, eq=False)

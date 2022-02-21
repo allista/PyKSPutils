@@ -5,9 +5,9 @@ from typing import Optional
 
 import click
 
+from KSPUtils.info_extractors.versions import FilenameVersion
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
-from KSPUtils.versions import FilenameVersion
 
 cmd = create_project_cmd()
 

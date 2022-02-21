@@ -3,16 +3,16 @@ from typing import Optional, Union, cast
 
 from git import Repo, Tag
 
-from KSPUtils.assembly_info import AssemblyInfo
 from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
+from KSPUtils.info_extractors.assembly_info import AssemblyInfo
+from KSPUtils.info_extractors.versions import AssemblyVersion, TagVersion
 from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
     get_assembly_info,
     get_changelog_version,
     get_git_tag_version,
 )
-from KSPUtils.versions import AssemblyVersion, TagVersion
 
 
 class CSharpProjectError(Exception):

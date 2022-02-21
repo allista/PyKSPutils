@@ -3,8 +3,8 @@ from typing import Union
 
 from git import Tag
 
-from KSPUtils.assembly_info import AssemblyInfo
-from KSPUtils.versions import TagVersion
+from KSPUtils.info_extractors.assembly_info import AssemblyInfo
+from KSPUtils.info_extractors.versions import TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
