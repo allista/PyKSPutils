@@ -6,10 +6,10 @@ from various sources like git tags, changelogs and AssemblyInfo.cs files
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from subprocess import CalledProcessError, check_output
-from typing import Any, Dict, Match, Optional, Type, Union
+from typing import Any, Dict, Match, Optional, Type
 
+from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.regex_extractor import RegexExtractor, RegexExtractorType
 
 
@@ -188,7 +188,9 @@ class FilenameVersion(RegexVersionBase):
 
     @classmethod
     def from_file(
-        cls: Type[RegexExtractorType], filename: Union[str, Path], **kwargs: Any
+        cls: Type[RegexExtractorType],
+        filename: StrPath,
+        **kwargs: Any,
     ) -> RegexExtractorType:
         """
         Creates Version from file name
@@ -227,7 +229,7 @@ class ExifVersion(FilenameVersion):
 
     @classmethod
     def from_file(
-        cls: Type[RegexExtractorType], filename: Union[str, Path], **kwargs: Any
+        cls: Type[RegexExtractorType], filename: StrPath, **kwargs: Any
     ) -> Optional[RegexExtractorType]:
         filepath, mod_time = cls._resolve_path(filename)
         try:

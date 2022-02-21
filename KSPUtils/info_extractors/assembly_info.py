@@ -3,10 +3,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Match, Optional
 
+from KSPUtils.info_extractors.file_extractor import FileExtractor, StrPath
 from KSPUtils.info_extractors.regex_extractor import (
-    FileExtractor,
     RegexExtractor,
-    StrPath,
 )
 from KSPUtils.info_extractors.versions import (
     AssemblyVersion,

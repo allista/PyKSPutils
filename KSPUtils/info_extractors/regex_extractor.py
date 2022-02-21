@@ -1,27 +1,9 @@
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from pathlib import Path
 from re import Match
-from typing import Any, Dict, Optional, Pattern, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, Optional, Pattern, Type, TypeVar
 
-StrPath = Union[str, Path]
-
-
-class FileExtractor:
-    @classmethod
-    def _resolve_path(cls, filename: StrPath) -> Tuple[Path, datetime]:
-        filepath = Path(filename).resolve()
-        mod_time = datetime.fromtimestamp(
-            filepath.stat().st_mtime, timezone.utc
-        ).astimezone()
-        return filepath, mod_time
-
-    @classmethod
-    def _read_path(cls, filename: StrPath) -> Tuple[str, datetime]:
-        filepath, mod_time = cls._resolve_path(filename)
-        return filepath.read_text("utf8"), mod_time
-
+from KSPUtils.info_extractors.file_extractor import FileExtractor, StrPath
 
 RegexExtractorType = TypeVar("RegexExtractorType", bound="RegexExtractor")
 
@@ -58,7 +40,7 @@ class RegexExtractor(FileExtractor):
 
     @classmethod
     def from_file(
-        cls: Type[RegexExtractorType], filename: Union[str, Path], **kwargs: Any
+        cls: Type[RegexExtractorType], filename: StrPath, **kwargs: Any
     ) -> Optional[RegexExtractorType]:
         """
         Creates RegexExtractor from a text file
