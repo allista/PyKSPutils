@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from subprocess import CalledProcessError, check_output
 from typing import Any, Dict, Match, Optional, Type, Union
 
 from KSPUtils.regex_extractor import RegexExtractor, RegexExtractorType
@@ -201,3 +202,38 @@ class FilenameVersion(RegexVersionBase):
             filename=filepath.name,
             **kwargs,
         )
+
+
+@dataclass(frozen=True)
+class FileTitle(FilenameTitle):
+    title: str = ""
+
+    _re = re.compile(r"^(?P<title>.*)\..*")
+
+    @classmethod
+    def _extract(cls, match: Match) -> Dict[str, Any]:
+        return {"title": match.group("title")}
+
+
+@dataclass(frozen=True, repr=False, eq=False)
+class ExifVersion(FilenameVersion):
+    """
+    Representation of a version from exiftool output
+    """
+
+    _re = re.compile(
+        r"Product Version\s+: (?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
+    )
+
+    @classmethod
+    def from_file(
+        cls: Type[RegexExtractorType], filename: Union[str, Path], **kwargs: Any
+    ) -> Optional[RegexExtractorType]:
+        filepath, mod_time = cls._resolve_path(filename)
+        try:
+            output = check_output(f"exiftool {filepath}", shell=True).decode("utf8")
+        except CalledProcessError as e:
+            print(f"{e}")
+            return None
+        title = FileTitle.from_str(filepath.name)
+        return cls.from_str(output, date=mod_time, title=title.title if title else None)
