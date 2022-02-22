@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from re import Match
-from typing import Any, Dict, Optional, Pattern, Type, TypeVar
+from typing import Any, ClassVar, Dict, Optional, Pattern, Type, TypeVar
 
 from KSPUtils.info_extractors.file_extractor import FileExtractor, StrPath
 
@@ -10,7 +10,7 @@ RegexExtractorType = TypeVar("RegexExtractorType", bound="RegexExtractor")
 
 @dataclass(frozen=True)
 class RegexExtractor(FileExtractor):
-    _re = re.compile("")
+    _re: ClassVar[Pattern] = re.compile("")
 
     @classmethod
     def _find_first(cls, regex: Pattern, text: str) -> Optional[Match]:
