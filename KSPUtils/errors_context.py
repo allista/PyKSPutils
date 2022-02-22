@@ -50,24 +50,32 @@ class ErrorsContext:
                 "Active block is not set, cannot enter the context"
             )
         self._blocks_stack.append(self._block)
+        self._block = None
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             if exc_val is not None and any(
                 isinstance(exc_val, handled)
-                for handled in (self._common_exceptions + self._blocks_stack[-1].exceptions)
+                for handled in (
+                    self._common_exceptions + self._blocks_stack[-1].exceptions
+                )
             ):
                 self.error(f"{exc_val}")
                 return True
         finally:
-            self._block = self._blocks_stack.pop() if self._blocks_stack else None
+            self._blocks_stack.pop()
 
     def error(self, message) -> None:
-        if self._block is None:
-            raise ErrorsContextError("Cannot set error without active block")
-        error_message = self.message_template.format(block=self._block, message=message)
-        self._errors[self._block.name].append(error_message)
+        if not self._blocks_stack:
+            raise ErrorsContextError("Cannot add error outside of block context")
+        if self._block is not None:
+            raise ErrorsContextError(
+                "Block conflict: did you forget to enter the context after calling it?"
+            )
+        block = self._blocks_stack[-1]
+        error_message = self.message_template.format(block=block, message=message)
+        self._errors[block.name].append(error_message)
         self._on_error(error_message)
 
     def _on_error(self, message: str) -> None:
