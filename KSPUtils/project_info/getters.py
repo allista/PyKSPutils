@@ -1,13 +1,27 @@
 from pathlib import Path
+from typing import Collection, Type
 
 from git import Tag
 
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
-from KSPUtils.info_extractors.file_extractor import StrPath
-from KSPUtils.info_extractors.versions import TagVersion
+from KSPUtils.info_extractors.file_extractor import FileExtractorType, StrPath
+from KSPUtils.info_extractors.versions import ExifVersion, TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
+
+
+def _version_from_paths(
+    cls: Type[FileExtractorType], names: Collection[StrPath], paths: Collection[StrPath]
+) -> FileExtractorType:
+    for p in paths:
+        for name in names:
+            path = Path(p) / name
+            if path.is_file():
+                return cls.from_file(path)
+    names_combined = " or ".join(f"{n}" for n in names)
+    paths_combined = "\n".join(f"{p}" for p in paths)
+    raise ValueError(f"Unable to find\n{names_combined}\nwithin:\n{paths_combined}")
 
 
 def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
@@ -18,16 +32,9 @@ def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
     :return: AssemblyVersion object
     :raise ValueError: if AssemblyInfo.cs file is not found
     """
-    for path in paths:
-        base_path = Path(path)
-        file_path = base_path / _assembly_info
-        if not file_path.is_file():
-            file_path = base_path / _properties / _assembly_info
-        if not file_path.is_file():
-            continue
-        return AssemblyInfo.from_file(file_path)
-    paths_combined = "\n".join(f"{p}" for p in paths)
-    raise ValueError(f"Unable to find {_assembly_info} within:\n{paths_combined}")
+    return _version_from_paths(
+        AssemblyInfo, [_assembly_info, _properties / _assembly_info], paths
+    )
 
 
 def get_changelog_version(name: str, *paths: StrPath) -> TagVersion:
@@ -40,12 +47,7 @@ def get_changelog_version(name: str, *paths: StrPath) -> TagVersion:
     :return: The first version encountered in the text of the changelog file
     :raise ValueError: in case the file does not exist
     """
-    for p in paths:
-        path = Path(p) / name
-        if path.is_file():
-            return TagVersion.from_file(path)
-    paths_combined = "\n".join(f"{p}" for p in paths)
-    raise ValueError(f"Unable to find {name} within:\n{paths_combined}")
+    return _version_from_paths(TagVersion, [name], paths)
 
 
 def get_git_tag_version(tag: Tag) -> TagVersion:
