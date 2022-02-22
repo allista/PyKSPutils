@@ -4,7 +4,7 @@ from typing import List, NamedTuple, Optional, Tuple, Type
 
 
 class ErrorsContextError(Exception):
-    """Bad usage of ErrorsContextError"""
+    """Bad usage of ErrorsContext"""
 
 
 class Block(NamedTuple):
