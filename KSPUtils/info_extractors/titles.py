@@ -20,6 +20,9 @@ class TitleExtractorBase(RegexExtractor):
     def __repr__(self):
         return self.__str__()
 
+    def __bool__(self):
+        return bool(self.title)
+
     @classmethod
     def _extract(cls, match: Match) -> Dict[str, Any]:
         return {"title": match.group("title")}
