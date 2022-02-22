@@ -50,14 +50,24 @@ class VersionBase:
     def __ge__(self, other):
         if not isinstance(other, VersionBase):
             return False
-        self_build = self.build or 0
-        other_build = other.build or 0
-        return (
-            self.major >= other.major
-            and self.minor >= other.minor
-            and self_build >= other_build
-            and (self.revision or 0) >= (other.revision or 0)
-        )
+        if self.major > other.major:
+            return True
+        if self.major == other.major:
+            if self.minor > other.minor:
+                return True
+            if self.minor == other.minor:
+                self_build = self.build or 0
+                other_build = other.build or 0
+                if self_build > other_build:
+                    return True
+                if self_build == other_build:
+                    self_revision = self.revision or 0
+                    other_revision = other.revision or 0
+                    if self_revision > other_revision:
+                        return True
+                    if self_revision == other_revision:
+                        return True
+        return False
 
     def __gt__(self, other):
         return self >= other and self != other
