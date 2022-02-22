@@ -57,15 +57,17 @@ class CSharpProject:
     def assembly_version(self) -> Optional[AssemblyVersion]:
         return self.assembly_info.assembly_version if self.assembly_info else None
 
-    def update_assembly_info(self):
+    def update_assembly_info(self) -> bool:
         with self.context(self.BLOCK_ASSEMBLY_INFO):
             self.assembly_info = get_assembly_info(*self.search_paths)
+        return bool(self.assembly_info)
 
-    def update_changelog_version(self):
+    def update_changelog_version(self) -> bool:
         with self.context(self.BLOCK_CHANE_LOG):
             self.change_log_version = get_changelog_version(
                 self.change_log_name, *self.search_paths
             )
+        return bool(self.change_log_version)
 
     def update_latest_tag(self):
         with self.context(self.BLOCK_GIT_TAG):
