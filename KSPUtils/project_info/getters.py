@@ -57,3 +57,10 @@ def get_git_tag_version(tag: Tag) -> TagVersion:
     return TagVersion.from_str(
         tag.name, date=tag.commit.authored_datetime, commit_sha=tag.commit.hexsha
     )
+
+
+def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
+    """
+    Creates ExifVersion from an assembly .dll
+    """
+    return _version_from_paths(ExifVersion, [name], paths)
