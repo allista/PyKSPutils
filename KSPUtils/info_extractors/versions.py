@@ -35,6 +35,9 @@ class VersionBase:
             return self.__str__()
         return f"{self!s} at {self.date:%Y-%m-%d %H:%M:%S %z}"
 
+    def __hash__(self):
+        return hash((self.major, self.minor, self.build or 0, self.revision or 0))
+
     def __eq__(self, other) -> bool:
         return (
             isinstance(other, VersionBase)
