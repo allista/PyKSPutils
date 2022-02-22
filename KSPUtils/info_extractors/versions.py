@@ -72,6 +72,14 @@ class VersionBase:
     def __gt__(self, other):
         return self >= other and self != other
 
+    def __lt__(self, other):
+        if not isinstance(other, VersionBase):
+            return False
+        return not self >= other
+
+    def __le__(self, other):
+        return self < other or self == other
+
 
 @dataclass(frozen=True, repr=False, eq=False)
 class RegexVersionBase(VersionBase, RegexExtractor):
