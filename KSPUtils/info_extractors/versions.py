@@ -93,16 +93,23 @@ class AssemblyVersion(RegexVersionBase):
 
 
 @dataclass(frozen=True, repr=False, eq=False)
-class TagVersion(RegexVersionBase):
+class SimpleVersion(RegexVersionBase):
+    """
+    Representation of a simple version
+    """
+
+    _re = re.compile(
+        r"v(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
+    )
+
+
+@dataclass(frozen=True, repr=False, eq=False)
+class TagVersion(SimpleVersion):
     """
     Representation of a version from git tag
     """
 
     commit_sha: str = ""
-
-    _re = re.compile(
-        r"v(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
-    )
 
     def __repr__(self):
         res = super().__repr__()

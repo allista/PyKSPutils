@@ -5,7 +5,7 @@ from git import Tag
 
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
 from KSPUtils.info_extractors.file_extractor import FileExtractorType, StrPath
-from KSPUtils.info_extractors.versions import ExifVersion, TagVersion
+from KSPUtils.info_extractors.versions import ExifVersion, SimpleVersion, TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
@@ -37,7 +37,7 @@ def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
     )
 
 
-def get_changelog_version(name: str, *paths: StrPath) -> TagVersion:
+def get_changelog_version(name: str, *paths: StrPath) -> SimpleVersion:
     """
     Reads a text file from path and returns the first TagVersion encountered
     inside.
@@ -47,7 +47,7 @@ def get_changelog_version(name: str, *paths: StrPath) -> TagVersion:
     :return: The first version encountered in the text of the changelog file
     :raise ValueError: in case the file does not exist
     """
-    return _version_from_paths(TagVersion, [name], paths)
+    return _version_from_paths(SimpleVersion, [name], paths)
 
 
 def get_git_tag_version(tag: Tag) -> TagVersion:

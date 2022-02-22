@@ -7,7 +7,7 @@ from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
 from KSPUtils.info_extractors.file_extractor import StrPath
-from KSPUtils.info_extractors.versions import AssemblyVersion, TagVersion
+from KSPUtils.info_extractors.versions import AssemblyVersion, SimpleVersion, TagVersion
 from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
     get_assembly_info,
@@ -38,7 +38,7 @@ class CSharpProject:
         self.change_log_name = change_log
         self.context = errors_context or ErrorsContext(ValueError)
         self.assembly_info: Optional[AssemblyInfo] = None
-        self.change_log_version: Optional[TagVersion] = None
+        self.change_log_version: Optional[SimpleVersion] = None
         self.repo: Optional[Repo] = None
         self.latest_tag: Optional[Tag] = None
         self.git_tag_version: Optional[TagVersion] = None
