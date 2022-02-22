@@ -1,16 +1,16 @@
 from pathlib import Path
-from typing import Union
 
 from git import Tag
 
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
+from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
 
 
-def get_assembly_info(*paths: Union[str, Path]) -> AssemblyInfo:
+def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
     """
     Returns AssemblyVersion from AssemblyInfo.cs file
 
@@ -30,7 +30,7 @@ def get_assembly_info(*paths: Union[str, Path]) -> AssemblyInfo:
     raise ValueError(f"Unable to find {_assembly_info} within:\n{paths_combined}")
 
 
-def get_changelog_version(name: str, *paths: Union[str, Path]) -> TagVersion:
+def get_changelog_version(name: str, *paths: StrPath) -> TagVersion:
     """
     Reads a text file from path and returns the first TagVersion encountered
     inside.
