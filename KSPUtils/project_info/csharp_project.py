@@ -1,11 +1,12 @@
 from pathlib import Path
-from typing import Optional, Union, cast
+from typing import Optional, cast
 
 from git import Repo, Tag
 
 from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
+from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import AssemblyVersion, TagVersion
 from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
@@ -27,8 +28,8 @@ class CSharpProject:
 
     def __init__(
         self,
-        path: Union[str, Path],
-        *search_paths: str,
+        path: StrPath,
+        *search_paths: StrPath,
         change_log: str = "ChangeLog.md",
         errors_context: Optional[ErrorsContext] = None,
     ) -> None:
