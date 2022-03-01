@@ -49,7 +49,7 @@ def create_project_cmd(on_error: OnErrorHandler = on_error_echo) -> click.Group:
             Path.cwd(),
             *add_search_path,
             change_log=change_log,
-            errors_context=ExitCodeContext(on_error, ValueError),
+            errors_context=ExitCodeContext(on_error, FileNotFoundError),
         )
 
     return cmd

@@ -36,7 +36,7 @@ class CSharpProject:
         self.path = Path(path)
         self.search_paths = get_search_paths(self.path, *search_paths)
         self.change_log_name = change_log
-        self.context = errors_context or ErrorsContext(ValueError)
+        self.context = errors_context or ErrorsContext(FileNotFoundError)
         self.assembly_info: Optional[AssemblyInfo] = None
         self.change_log_version: Optional[SimpleVersion] = None
         self.repo: Optional[Repo] = None

@@ -21,7 +21,7 @@ def _version_from_paths(
                 return cls.from_file(path)
     names_combined = " or ".join(f"{n}" for n in names)
     paths_combined = "\n".join(f"{p}" for p in paths)
-    raise ValueError(f"Unable to find\n{names_combined}\nwithin:\n{paths_combined}")
+    raise FileNotFoundError(f"Unable to find\n{names_combined}\nwithin:\n{paths_combined}")
 
 
 def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
@@ -30,7 +30,7 @@ def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
 
     :param paths: paths to look for AssemblyInfo.cs file in
     :return: AssemblyVersion object
-    :raise ValueError: if AssemblyInfo.cs file is not found
+    :raise FileNotFoundError: if AssemblyInfo.cs file is not found
     """
     return _version_from_paths(
         AssemblyInfo, [_assembly_info, _properties / _assembly_info], paths
@@ -45,7 +45,7 @@ def get_changelog_version(name: str, *paths: StrPath) -> SimpleVersion:
     :param name: filename of the changelog
     :param paths: paths where to search for the changelog file
     :return: The first version encountered in the text of the changelog file
-    :raise ValueError: in case the file does not exist
+    :raise FileNotFoundError: in case the file does not exist
     """
     return _version_from_paths(SimpleVersion, [name], paths)
 
@@ -62,5 +62,10 @@ def get_git_tag_version(tag: Tag) -> TagVersion:
 def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
     """
     Creates ExifVersion from an assembly .dll
+
+    :param name: filename of the changelog
+    :param paths: paths where to search for the changelog file
+    :return: The version extracted from .dll
+    :raise FileNotFoundError: in case the file does not exist
     """
     return _version_from_paths(ExifVersion, [name], paths)
