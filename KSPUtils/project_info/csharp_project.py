@@ -2,9 +2,11 @@ from pathlib import Path
 from typing import Optional, cast
 
 from git import Repo, Tag
+from github import Github
 
 from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
+from KSPUtils.github_utils import GithubError, get_github
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
 from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import (
@@ -31,6 +33,7 @@ class CSharpProject:
     BLOCK_CHANE_LOG = "ChangeLog"
     BLOCK_GIT = "Git"
     BLOCK_GIT_TAG = "Git tag"
+    BLOCK_GITHUB = "GitHub"
     BLOCK_MOD_CONFIG = "Mod config"
 
     def __init__(
@@ -48,6 +51,7 @@ class CSharpProject:
         self.assembly_info: Optional[AssemblyInfo] = None
         self.change_log_version: Optional[SimpleVersion] = None
         self.dll_version: Optional[ExifVersion] = None
+        self.github: Optional[Github] = None
         self.repo: Optional[Repo] = None
         self.latest_tag: Optional[Tag] = None
         self.git_tag_version: Optional[TagVersion] = None
@@ -108,6 +112,11 @@ class CSharpProject:
             return False
         with self.context(self.BLOCK_MOD_CONFIG):
             self.dll_version = ExifVersion.from_file(self.mod_config.dll_path)
+
+    def update_github(self) -> bool:
+        with self.context(self.BLOCK_GITHUB, GithubError):
+            self.github = get_github(".")
+        return bool(self.github)
 
     def error(self, message: str) -> None:
         self.context.error(message)
