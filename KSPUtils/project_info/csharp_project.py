@@ -7,7 +7,12 @@ from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
 from KSPUtils.info_extractors.file_extractor import StrPath
-from KSPUtils.info_extractors.versions import AssemblyVersion, SimpleVersion, TagVersion
+from KSPUtils.info_extractors.versions import (
+    AssemblyVersion,
+    ExifVersion,
+    SimpleVersion,
+    TagVersion,
+)
 from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
     get_assembly_info,
@@ -42,6 +47,7 @@ class CSharpProject:
         self.mod_config: Optional[ModConfig] = None
         self.assembly_info: Optional[AssemblyInfo] = None
         self.change_log_version: Optional[SimpleVersion] = None
+        self.dll_version: Optional[ExifVersion] = None
         self.repo: Optional[Repo] = None
         self.latest_tag: Optional[Tag] = None
         self.git_tag_version: Optional[TagVersion] = None
@@ -56,6 +62,7 @@ class CSharpProject:
             elif self.repo.is_dirty():
                 self.error(f"Repo is dirty at {self.path}")
         self.update_latest_tag()
+        self.update_dll_version()
 
     @property
     def assembly_version(self) -> Optional[AssemblyVersion]:
@@ -87,6 +94,12 @@ class CSharpProject:
                         self.git_tag_version = get_git_tag_version(self.latest_tag)
                     except ValueError:
                         pass
+
+    def update_dll_version(self) -> bool:
+        if self.mod_config is None or not self.mod_config.dll_path:
+            return False
+        with self.context(self.BLOCK_MOD_CONFIG):
+            self.dll_version = ExifVersion.from_file(self.mod_config.dll_path)
 
     def error(self, message: str) -> None:
         self.context.error(message)

@@ -17,16 +17,15 @@ BLOCK_VERSIONS = "Version check"
 @cmd.command("show-versions")
 @pass_project
 def show_versions(project: CSharpProject) -> None:
-    click.echo(
-        "\n".join(
-            (
-                f"Assembly Info:",
-                indent(f"{project.assembly_info}", "  "),
-                f"ChangeLog: {project.change_log_version!r}",
-                f"Git tag:   {project.git_tag_version!r}",
-            )
-        )
-    )
+    info = [
+        f"Assembly Info:",
+        indent(f"{project.assembly_info}", "  "),
+        f"ChangeLog: {project.change_log_version!r}",
+        f"Git tag:   {project.git_tag_version!r}",
+    ]
+    if project.dll_version:
+        info.append(f"DLL:       {project.dll_version!r}")
+    click.echo("\n".join(info))
 
 
 @cmd.command("for-merge")
