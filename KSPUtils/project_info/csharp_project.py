@@ -68,6 +68,14 @@ class CSharpProject:
     def assembly_version(self) -> Optional[AssemblyVersion]:
         return self.assembly_info.assembly_version if self.assembly_info else None
 
+    @property
+    def assembly_title(self) -> Optional[str]:
+        return (
+            self.assembly_info.title.title
+            if self.assembly_info and self.assembly_info.title
+            else None
+        )
+
     def update_mod_config(self) -> bool:
         with self.context(self.BLOCK_MOD_CONFIG):
             self.mod_config = ModConfig.default(self.path)
