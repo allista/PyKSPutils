@@ -20,6 +20,7 @@ setup(
         "console_scripts": [
             "check_project = KSPUtils.scripts.check_project:cmd",
             "git_tag_by_assembly_info = KSPUtils.scripts.git_tag_by_assembly_info:cmd",
+            "publish_release = KSPUtils.scripts.publish_release:cmd"
         ],
     },
 )
