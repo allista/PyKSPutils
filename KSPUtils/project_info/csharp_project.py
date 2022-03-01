@@ -14,6 +14,7 @@ from KSPUtils.project_info.getters import (
     get_changelog_version,
     get_git_tag_version,
 )
+from KSPUtils.project_info.mod_config import ModConfig
 
 
 class CSharpProjectError(Exception):
@@ -25,6 +26,7 @@ class CSharpProject:
     BLOCK_CHANE_LOG = "ChangeLog"
     BLOCK_GIT = "Git"
     BLOCK_GIT_TAG = "Git tag"
+    BLOCK_MOD_CONFIG = "Mod config"
 
     def __init__(
         self,
@@ -37,11 +39,13 @@ class CSharpProject:
         self.search_paths = get_search_paths(self.path, *search_paths)
         self.change_log_name = change_log
         self.context = errors_context or ErrorsContext(FileNotFoundError)
+        self.mod_config: Optional[ModConfig] = None
         self.assembly_info: Optional[AssemblyInfo] = None
         self.change_log_version: Optional[SimpleVersion] = None
         self.repo: Optional[Repo] = None
         self.latest_tag: Optional[Tag] = None
         self.git_tag_version: Optional[TagVersion] = None
+        self.update_mod_config()
         self.update_assembly_info()
         self.update_changelog_version()
         with self.context(self.BLOCK_GIT):
@@ -56,6 +60,11 @@ class CSharpProject:
     @property
     def assembly_version(self) -> Optional[AssemblyVersion]:
         return self.assembly_info.assembly_version if self.assembly_info else None
+
+    def update_mod_config(self) -> bool:
+        with self.context(self.BLOCK_MOD_CONFIG):
+            self.mod_config = ModConfig.default(self.path)
+        return self.mod_config is not None
 
     def update_assembly_info(self) -> bool:
         with self.context(self.BLOCK_ASSEMBLY_INFO):
