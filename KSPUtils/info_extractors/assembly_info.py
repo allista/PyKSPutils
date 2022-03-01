@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from KSPUtils.info_extractors.file_extractor import FileExtractor, StrPath
 from KSPUtils.info_extractors.titles import AssemblyTitle
@@ -43,7 +43,7 @@ class AssemblyInfo(FileExtractor):
         return self.__str__()
 
     @classmethod
-    def from_file(cls, filename: StrPath) -> "AssemblyInfo":
+    def from_file(cls, filename: StrPath, **kwargs: Any) -> "AssemblyInfo":
         text, mod_time = cls._read_path(filename)
         return cls(
             mod_time,
