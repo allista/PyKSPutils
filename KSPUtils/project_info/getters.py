@@ -22,7 +22,9 @@ def _parse_from_paths(
                 return cls.from_file(path)
     names_combined = " or ".join(f"{n}" for n in names)
     paths_combined = "\n".join(f"{p}" for p in paths)
-    raise FileNotFoundError(f"Unable to find\n{names_combined}\nwithin:\n{paths_combined}")
+    raise FileNotFoundError(
+        f"Unable to find\n{names_combined}\nwithin:\n{paths_combined}"
+    )
 
 
 def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
