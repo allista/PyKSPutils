@@ -16,8 +16,8 @@ class ModConfig(YamlExtractor):
     spacedock_url: Optional[str] = None
 
     @classmethod
-    def default(cls, path: StrPath, **kwargs: Any) -> Optional["ModConfig"]:
+    def default(cls, path: StrPath, **kwargs: Any) -> "ModConfig":
         try:
             return cls.from_file(Path(path) / MOD_CONFIG_FILENAME, **kwargs)
         except FileNotFoundError:
-            return None if not kwargs else cls(**kwargs)
+            return cls(**kwargs)

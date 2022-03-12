@@ -80,10 +80,9 @@ class CSharpProject:
             else None
         )
 
-    def update_mod_config(self) -> bool:
+    def update_mod_config(self):
         with self.context(self.BLOCK_MOD_CONFIG):
             self.mod_config = ModConfig.default(self.path)
-        return self.mod_config is not None
 
     def update_assembly_info(self) -> bool:
         with self.context(self.BLOCK_ASSEMBLY_INFO):
@@ -108,7 +107,7 @@ class CSharpProject:
                         pass
 
     def update_dll_version(self) -> bool:
-        if self.mod_config is None or not self.mod_config.dll_path:
+        if not self.mod_config.dll_path:
             return False
         with self.context(self.BLOCK_MOD_CONFIG):
             self.dll_version = ExifVersion.from_file(self.mod_config.dll_path)
