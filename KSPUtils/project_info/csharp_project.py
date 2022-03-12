@@ -8,6 +8,7 @@ from KSPUtils.errors_context import ErrorsContext
 from KSPUtils.git_utils import get_repo, latest_tag
 from KSPUtils.github_utils import GithubError, get_github
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
+from KSPUtils.info_extractors.changelog import ChangeLog
 from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import (
     ArchiveVersion,
@@ -20,7 +21,7 @@ from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
     get_archive_version,
     get_assembly_info,
-    get_changelog_version,
+    get_changelog,
     get_git_tag_version,
 )
 from KSPUtils.project_info.mod_config import ModConfig
@@ -52,7 +53,7 @@ class CSharpProject:
         self.context = errors_context or ErrorsContext(FileNotFoundError)
         self.mod_config: Optional[ModConfig] = None
         self.assembly_info: Optional[AssemblyInfo] = None
-        self.change_log_version: Optional[SimpleVersion] = None
+        self.change_log: Optional[ChangeLog] = None
         self.dll_version: Optional[ExifVersion] = None
         self.archive_version: Optional[ArchiveVersion] = None
         self.github: Optional[Github] = None
@@ -61,7 +62,7 @@ class CSharpProject:
         self.git_tag_version: Optional[TagVersion] = None
         self.update_mod_config()
         self.update_assembly_info()
-        self.update_changelog_version()
+        self.update_changelog()
         with self.context(self.BLOCK_GIT):
             self.repo = get_repo(self.path)
             if self.repo is None or self.repo.bare:
@@ -85,6 +86,10 @@ class CSharpProject:
             else None
         )
 
+    @property
+    def change_log_version(self) -> Optional[SimpleVersion]:
+        return self.change_log.latest_version if self.change_log else None
+
     def update_mod_config(self):
         with self.context(self.BLOCK_MOD_CONFIG):
             self.mod_config = ModConfig.default(self.path)
@@ -94,12 +99,10 @@ class CSharpProject:
             self.assembly_info = get_assembly_info(*self.search_paths)
         return bool(self.assembly_info)
 
-    def update_changelog_version(self) -> bool:
+    def update_changelog(self) -> bool:
         with self.context(self.BLOCK_CHANE_LOG):
-            self.change_log_version = get_changelog_version(
-                self.change_log_name, *self.search_paths
-            )
-        return bool(self.change_log_version)
+            self.change_log = get_changelog(self.change_log_name, *self.search_paths)
+        return bool(self.change_log)
 
     def update_latest_tag(self):
         with self.context(self.BLOCK_GIT_TAG):
