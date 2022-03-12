@@ -33,6 +33,9 @@ class ChangeLog(FileExtractor):
             res += [f"## {version}", self.entries[version]]
         return "\n\n".join(res)
 
+    def __getitem__(self, v: SimpleVersion) -> Optional[str]:
+        return self.entries.get(v)
+
     @classmethod
     def from_file(
         cls: Type[FileExtractorType], filename: StrPath, **kwargs: Any
