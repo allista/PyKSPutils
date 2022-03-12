@@ -109,22 +109,25 @@ def for_release(project: CSharpProject, require_branch: str) -> None:
             not project.assembly_version
             or not project.change_log_version
             or not project.git_tag_version
-            or project.assembly_version != project.git_tag_version
+            or not project.dll_version
             or project.assembly_version != project.change_log_version
-            or project.git_tag_version != project.change_log_version
+            or project.assembly_version != project.git_tag_version
+            or project.assembly_version != project.dll_version
         ):
             project.error(
                 f"Versions do not match"
                 f"\nAssembly:  {project.assembly_version!r}"
                 f"\nChangeLog: {project.change_log_version!r}"
-                f"\nGit tag:   {project.git_tag_version!r}",
+                f"\nGit tag:   {project.git_tag_version!r}"
+                f"\nDLL:       {project.dll_version!r}",
             )
         else:
             click.echo(
                 f"All versions match"
                 f"\nAssembly:  {project.assembly_version!r}"
                 f"\nChangeLog: {project.change_log_version!r}"
-                f"\nGit tag:   {project.git_tag_version!r}",
+                f"\nGit tag:   {project.git_tag_version!r}"
+                f"\nDLL:       {project.dll_version!r}",
             )
     sys.exit(project.context.exit_code)
 
