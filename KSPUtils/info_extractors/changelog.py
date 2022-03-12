@@ -17,9 +17,15 @@ class ChangeLog(FileExtractor):
     in order and keyed by version
     """
 
-    def __init__(self, header: str = "", entries: Optional[ChangeLogEntries] = None):
+    def __init__(
+        self,
+        header: str = "",
+        entries: Optional[ChangeLogEntries] = None,
+    ):
         self.header = header
-        self.entries = entries or {}
+        self.entries: ChangeLogEntries = (
+            {v: entries[v] for v in sorted(entries, reverse=True)} if entries else {}
+        )
 
     def __str__(self):
         res = [self.header] if self.header else []
@@ -49,4 +55,4 @@ class ChangeLog(FileExtractor):
                     entry = []
                 else:
                     entry.append(line)
-        return cls(header, {v: entries[v] for v in sorted(entries, reverse=True)})
+        return cls(header, entries)
