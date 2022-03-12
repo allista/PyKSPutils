@@ -1,11 +1,11 @@
 from pathlib import Path
-from typing import Collection, Type
+from typing import Collection, Optional, Type
 
 from git import Tag
 
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
 from KSPUtils.info_extractors.file_extractor import FileExtractorType, StrPath
-from KSPUtils.info_extractors.versions import ExifVersion, SimpleVersion, TagVersion
+from KSPUtils.info_extractors.versions import ArchiveVersion, SimpleVersion, ExifVersion, TagVersion
 
 _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
@@ -69,3 +69,21 @@ def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
     :raise FileNotFoundError: in case the file does not exist
     """
     return _version_from_paths(ExifVersion, [name], paths)
+
+
+def get_archive_version(name: str, path: StrPath) -> ArchiveVersion:
+    archive_version: Optional[ArchiveVersion] = None
+    for filepath in Path(path).iterdir():
+        try:
+            file_version = ArchiveVersion.from_file(filepath)
+        except FileNotFoundError:
+            continue
+        if (
+            file_version
+            and file_version.title == name
+            and (not archive_version or archive_version < file_version)
+        ):
+            archive_version = file_version
+    if not archive_version:
+        raise FileNotFoundError(f"Unable to find archive for {name} within {path}")
+    return archive_version

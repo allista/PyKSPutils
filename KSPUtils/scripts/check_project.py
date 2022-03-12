@@ -25,6 +25,8 @@ def show_versions(project: CSharpProject) -> None:
     ]
     if project.dll_version:
         info.append(f"DLL:       {project.dll_version!r}")
+    if project.archive_version:
+        info.append(f"Archive:   {project.archive_version!r}")
     click.echo("\n".join(info))
 
 
