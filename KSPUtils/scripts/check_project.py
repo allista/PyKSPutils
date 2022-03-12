@@ -1,11 +1,8 @@
 import sys
-from pathlib import Path
 from textwrap import indent
-from typing import Optional
 
 import click
 
-from KSPUtils.info_extractors.versions import ArchiveVersion
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
 
@@ -133,52 +130,27 @@ def for_release(project: CSharpProject, require_branch: str) -> None:
 
 
 @cmd.command("check-archive")
-@click.argument(
-    "archives_path",
-    type=click.Path(file_okay=False, dir_okay=True, exists=True),
-)
-@click.option(
-    "--only-if-exists",
-    default="",
-    show_default=True,
-    help="Check for the existence of this file first",
-    type=click.Path(),
-)
 @pass_project
-def check_archive(
-    project: CSharpProject, archives_path: str, only_if_exists: str
-) -> None:
+def check_archive(project: CSharpProject) -> None:
     """
     Checks for existence and version of a release archive
     corresponding to Assembly version
     """
-    if only_if_exists and not Path(only_if_exists).exists():
-        click.echo(f"No {only_if_exists} found.\nSkipping {project.path}")
+    if not project.mod_config.archive_path:
         sys.exit(0)
-    with project.context(BLOCK_VERSIONS):
-        if project.assembly_info:
-            archives = Path(archives_path)
-            archive_version: Optional[ArchiveVersion] = None
-            for filepath in archives.iterdir():
-                try:
-                    file_version = ArchiveVersion.from_file(filepath)
-                except ValueError:
-                    continue
-                if file_version and file_version.title == project.assembly_info.title:
-                    archive_version = file_version
-                    if archive_version != project.assembly_version:
-                        project.error(
-                            "Archive version does not match the Assembly version:\n"
-                            f"Assembly: {project.assembly_version!r}\n"
-                            f"Archive:  {archive_version!r}"
-                        )
-                    else:
-                        click.echo(
-                            f"Found archive {filepath.name}\n{archive_version!r}"
-                        )
-                    break
-            if not archive_version:
-                project.error(
-                    f"No archive for {project.assembly_info.title} is found within\n{archives}"
-                )
+    with project.context(project.BLOCK_ARCHIVE):
+        if not project.archive_version:
+            project.error(
+                f"No archive for {project.assembly_info.title} is found within {project.mod_config.archive_path}"
+            )
+        elif project.archive_version != project.assembly_version:
+            project.error(
+                "Latest archive version does not match the Assembly version:\n"
+                f"Assembly: {project.assembly_version!r}\n"
+                f"Archive:  {project.archive_version!r}"
+            )
+        else:
+            click.echo(
+                f"Found archive {project.archive_version.filename}\n{project.archive_version!r}"
+            )
     sys.exit(project.context.exit_code)

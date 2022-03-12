@@ -43,13 +43,10 @@ class CSharpProject:
     def __init__(
         self,
         path: StrPath,
-        *search_paths: StrPath,
-        change_log: str = "ChangeLog.md",
         errors_context: Optional[ErrorsContext] = None,
     ) -> None:
         self.path = Path(path)
-        self.search_paths = get_search_paths(self.path, *search_paths)
-        self.change_log_name = change_log
+        self.search_paths = []
         self.context = errors_context or ErrorsContext(FileNotFoundError)
         self.mod_config: Optional[ModConfig] = None
         self.assembly_info: Optional[AssemblyInfo] = None
@@ -87,12 +84,19 @@ class CSharpProject:
         )
 
     @property
+    def change_log_name(self) -> str:
+        return self.mod_config.change_log
+
+    @property
     def change_log_version(self) -> Optional[SimpleVersion]:
         return self.change_log.latest_version if self.change_log else None
 
     def update_mod_config(self):
         with self.context(self.BLOCK_MOD_CONFIG):
             self.mod_config = ModConfig.default(self.path)
+            self.search_paths = get_search_paths(
+                self.path, *self.mod_config.search_paths
+            )
 
     def update_assembly_info(self) -> bool:
         with self.context(self.BLOCK_ASSEMBLY_INFO):

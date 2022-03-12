@@ -1,6 +1,6 @@
-from pathlib import Path
-from typing import Any, Callable, List, TypeVar, cast
 from functools import wraps
+from pathlib import Path
+from typing import Any, Callable, TypeVar, cast
 
 import click
 
@@ -30,25 +30,10 @@ def pass_project(f: F) -> F:
 
 def create_project_cmd(on_error: OnErrorHandler = on_error_echo) -> click.Group:
     @click.group()
-    @click.option(
-        "--change-log",
-        default="ChangeLog.md",
-        type=click.Path(),
-        show_default=True,
-        help="Path to the changelog file where to search for the version",
-    )
-    @click.option(
-        "--add-search-path",
-        multiple=True,
-        default=[],
-        help="Additional paths to search for project sources",
-    )
     @click.pass_context
-    def cmd(ctx: click.Context, change_log: str, add_search_path: List[str]):
+    def cmd(ctx: click.Context):
         ctx.obj = CSharpProject(
             Path.cwd(),
-            *add_search_path,
-            change_log=change_log,
             errors_context=ExitCodeContext(on_error, FileNotFoundError),
         )
 
