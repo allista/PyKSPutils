@@ -44,7 +44,7 @@ class ChangeLog(FileExtractor):
             version: Optional[SimpleVersion] = None
             entry: List[str] = []
             for line in inp:
-                v = SimpleVersion.from_str(line)
+                v = SimpleVersion.from_str(line, date=mod_time)
                 if v:
                     entry_text = dedent("".join(entry)).rstrip("\n\r")
                     if version:
