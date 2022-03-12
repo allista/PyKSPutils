@@ -121,8 +121,9 @@ class CSharpProject:
     def update_dll_version(self) -> bool:
         if not self.mod_config.dll_path:
             return False
-        with self.context(self.BLOCK_MOD_CONFIG):
+        with self.context(self.BLOCK_MOD_CONFIG).optional:
             self.dll_version = ExifVersion.from_file(self.mod_config.dll_path)
+        return bool(self.dll_version)
 
     def update_archive_version(self) -> bool:
         if not self.assembly_title or not self.mod_config.archive_path:
