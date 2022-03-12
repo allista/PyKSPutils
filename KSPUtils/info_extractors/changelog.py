@@ -36,6 +36,10 @@ class ChangeLog(FileExtractor):
     def __getitem__(self, v: SimpleVersion) -> Optional[str]:
         return self.entries.get(v)
 
+    @property
+    def latest_version(self) -> Optional[SimpleVersion]:
+        return next((v for v in self.entries), None)
+
     @classmethod
     def from_file(
         cls: Type[FileExtractorType], filename: StrPath, **kwargs: Any
