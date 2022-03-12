@@ -11,7 +11,7 @@ _properties = Path("Properties")
 _assembly_info = Path("AssemblyInfo.cs")
 
 
-def _version_from_paths(
+def _parse_from_paths(
     cls: Type[FileExtractorType], names: Collection[StrPath], paths: Collection[StrPath]
 ) -> FileExtractorType:
     for p in paths:
@@ -32,7 +32,7 @@ def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
     :return: AssemblyVersion object
     :raise FileNotFoundError: if AssemblyInfo.cs file is not found
     """
-    return _version_from_paths(
+    return _parse_from_paths(
         AssemblyInfo, [_assembly_info, _properties / _assembly_info], paths
     )
 
@@ -47,7 +47,7 @@ def get_changelog_version(name: str, *paths: StrPath) -> SimpleVersion:
     :return: The first version encountered in the text of the changelog file
     :raise FileNotFoundError: in case the file does not exist
     """
-    return _version_from_paths(SimpleVersion, [name], paths)
+    return _parse_from_paths(SimpleVersion, [name], paths)
 
 
 def get_git_tag_version(tag: Tag) -> TagVersion:
@@ -68,7 +68,7 @@ def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
     :return: The version extracted from .dll
     :raise FileNotFoundError: in case the file does not exist
     """
-    return _version_from_paths(ExifVersion, [name], paths)
+    return _parse_from_paths(ExifVersion, [name], paths)
 
 
 def get_archive_version(name: str, path: StrPath) -> ArchiveVersion:
