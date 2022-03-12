@@ -1,15 +1,21 @@
 import sys
 from collections import defaultdict
-from typing import List, NamedTuple, Optional, Tuple, Type
+from dataclasses import dataclass
+from typing import List, Optional, Tuple, Type, TypeVar
 
 
 class ErrorsContextError(Exception):
     """Bad usage of ErrorsContext"""
 
 
-class Block(NamedTuple):
+@dataclass
+class Block:
     name: str
     exceptions: Tuple[Type[BaseException]]
+    optional: bool = False
+
+
+ErrorsContextType = TypeVar("ErrorsContextType", bound="ErrorsContext")
 
 
 class ErrorsContext:
@@ -33,7 +39,7 @@ class ErrorsContext:
 
     def __call__(
         self, block: str, *handle_exceptions: Type[BaseException]
-    ) -> "ErrorsContext":
+    ) -> ErrorsContextType:
         """
         Sets active block name
 
@@ -44,7 +50,7 @@ class ErrorsContext:
         self._block = Block(block, handle_exceptions)
         return self
 
-    def __enter__(self) -> "ErrorsContext":
+    def __enter__(self) -> ErrorsContextType:
         if self._block is None:
             raise ErrorsContextError(
                 "Active block is not set, cannot enter the context"
@@ -66,6 +72,13 @@ class ErrorsContext:
         finally:
             self._blocks_stack.pop()
 
+    @property
+    def optional(self) -> ErrorsContextType:
+        if self._block is None:
+            raise ErrorsContextError("Active block is not set")
+        self._block.optional = True
+        return self
+
     def error(self, message) -> None:
         if not self._blocks_stack:
             raise ErrorsContextError("Cannot add error outside of block context")
@@ -75,10 +88,16 @@ class ErrorsContext:
             )
         block = self._blocks_stack[-1]
         error_message = self.message_template.format(block=block, message=message)
-        self._errors[block.name].append(error_message)
-        self._on_error(error_message)
+        if block.optional:
+            self._on_warning(error_message)
+        else:
+            self._errors[block.name].append(error_message)
+            self._on_error(error_message)
 
     def _on_error(self, message: str) -> None:
+        print(message, file=sys.stderr)
+
+    def _on_warning(self, message: str) -> None:
         print(message, file=sys.stderr)
 
     @property
