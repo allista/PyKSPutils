@@ -196,6 +196,7 @@ class FilenameVersion(RegexVersionBase):
 
     title: str = ""
     filename: str = ""
+    filepath: StrPath = ""
 
     _re = re.compile(
         r"v?(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
@@ -214,10 +215,12 @@ class FilenameVersion(RegexVersionBase):
         Creates Version from file name
         """
         filepath, mod_time = cls._resolve_path(filename)
+        kwargs.setdefault("title", filepath.name)
         return cls.from_str(
             filepath.name,
             date=mod_time,
             filename=filepath.name,
+            filepath=filepath,
             **kwargs,
         )
 
@@ -262,6 +265,8 @@ class ExifVersion(FilenameVersion):
         return cls.from_str(
             output,
             title=FilenameTitle.from_str_as_str(filepath.name),
+            filename=filepath.name,
+            filepath=filepath,
             date=mod_time,
             **kwargs,
         )
