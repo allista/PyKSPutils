@@ -4,7 +4,7 @@ from textwrap import indent
 import click
 
 from KSPUtils.project_info.csharp_project import CSharpProject
-from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
+from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project, sys_exit
 
 cmd = create_project_cmd()
 
@@ -74,7 +74,7 @@ def for_merge(project: CSharpProject, require_branch: str) -> None:
         )
         if project.git_tag_version is not None:
             click.echo(f"Previous release:\n{project.git_tag_version!r}")
-    sys.exit(project.context.exit_code)
+    sys_exit(project)
 
 
 @cmd.command("for-release")
@@ -126,7 +126,7 @@ def for_release(project: CSharpProject, require_branch: str) -> None:
                 f"\nGit tag:   {project.git_tag_version!r}"
                 f"\nDLL:       {project.dll_version!r}",
             )
-    sys.exit(project.context.exit_code)
+    sys_exit(project)
 
 
 @cmd.command("check-archive")
@@ -153,4 +153,4 @@ def check_archive(project: CSharpProject) -> None:
             click.echo(
                 f"Found archive {project.archive_version.filename}\n{project.archive_version!r}"
             )
-    sys.exit(project.context.exit_code)
+    sys_exit(project)

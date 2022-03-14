@@ -1,3 +1,4 @@
+import sys
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, TypeVar, cast
@@ -26,6 +27,10 @@ def pass_project(f: F) -> F:
         return f(get_project(ctx), *args, **kwargs)
 
     return cast(F, project_context_wrapper)
+
+
+def sys_exit(project: CSharpProject) -> None:
+    sys.exit(project.context.exit_code)
 
 
 def create_project_cmd(on_error: OnErrorHandler = on_error_echo) -> click.Group:

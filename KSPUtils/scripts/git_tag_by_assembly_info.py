@@ -4,7 +4,7 @@ import click
 
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.project_info.getters import get_git_tag_version
-from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
+from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project, sys_exit
 
 
 def on_error(message: str, exit_code: int) -> None:
@@ -40,7 +40,7 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
         - the latest existing git tag with a version should not be on HEAD commit
     """
     if project.context.failed:
-        sys.exit(project.context.exit_code)
+        sys_exit(project)
     with project.context(project.BLOCK_GIT):
         if project.repo.active_branch.name != require_branch:
             project.error(f"Not on the '{require_branch}' branch")
@@ -87,7 +87,7 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
             new_tag = project.repo.create_tag(f"{project.assembly_version}")
             new_tag_version = get_git_tag_version(new_tag)
             click.echo(f"Created new tag: {new_tag_version!r}")
-    sys.exit(project.context.exit_code)
+    sys_exit(project)
 
 
 @cmd.command("remove")
@@ -102,7 +102,7 @@ def remove_tag(project: CSharpProject) -> None:
         - the git tag with this version should be the latest tag
     """
     if project.context.failed:
-        sys.exit(project.context.exit_code)
+        sys_exit(project)
     with project.context(project.BLOCK_GIT_TAG):
         if not project.latest_tag:
             project.error("No tag found")
@@ -124,4 +124,4 @@ def remove_tag(project: CSharpProject) -> None:
             project.repo.delete_tag(project.latest_tag)
             project.update_latest_tag()
             click.echo(f"Latest tag now: {project.git_tag_version!r}")
-    sys.exit(project.context.exit_code)
+    sys_exit(project)
