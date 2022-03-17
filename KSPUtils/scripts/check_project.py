@@ -93,20 +93,10 @@ def for_release(project: CSharpProject, require_branch: str) -> None:
     with project.context(BLOCK_VERSIONS):
         if not project.versions_match(archive=False):
             project.error(
-                f"Versions do not match"
-                f"\nAssembly:  {project.assembly_version!r}"
-                f"\nChangeLog: {project.change_log_version!r}"
-                f"\nGit tag:   {project.git_tag_version!r}"
-                f"\nDLL:       {project.dll_version!r}",
+                f"Versions do not match\n{project.versions_info(archive=False)}"
             )
         else:
-            click.echo(
-                f"All versions match"
-                f"\nAssembly:  {project.assembly_version!r}"
-                f"\nChangeLog: {project.change_log_version!r}"
-                f"\nGit tag:   {project.git_tag_version!r}"
-                f"\nDLL:       {project.dll_version!r}",
-            )
+            click.echo(f"All versions match\n{project.versions_info(archive=False)}")
     sys_exit(project)
 
 

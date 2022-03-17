@@ -92,6 +92,14 @@ class CSharpProject:
             )
         )
 
+    def versions_info(self, *, dll=True, archive=True):
+        return "\n".join(
+            (
+                f"Assembly:  {self.change_log_version!r}",
+                *self._secondary_versions(dll, archive),
+            )
+        )
+
     @property
     def assembly_version(self) -> Optional[AssemblyVersion]:
         return self.assembly_info.assembly_version if self.assembly_info else None
