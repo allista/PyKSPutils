@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Optional, cast
+from textwrap import indent
+from typing import List, Optional, cast
 
 from git import Repo, Tag
 from github import Github
@@ -70,6 +71,26 @@ class CSharpProject:
         self.update_latest_tag()
         self.update_dll_version()
         self.update_archive_version()
+
+    def _secondary_versions(self, dll=True, archive=True) -> List[str]:
+        versions = [
+            f"ChangeLog: {self.change_log_version!r}",
+            f"Git tag:   {self.git_tag_version!r}",
+        ]
+        if dll:
+            versions.append(f"DLL:       {self.dll_version!r}")
+        if archive:
+            versions.append(f"Archive:   {self.archive_version!r}")
+        return versions
+
+    def __str__(self) -> str:
+        return "\n".join(
+            (
+                f"Assembly Info:",
+                indent(f"{self.assembly_info}", "  "),
+                *self._secondary_versions(),
+            )
+        )
 
     @property
     def assembly_version(self) -> Optional[AssemblyVersion]:
