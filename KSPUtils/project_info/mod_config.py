@@ -15,7 +15,7 @@ class ModConfig(YamlExtractor):
     dll_path: Optional[str] = None
     archive_path: Optional[str] = None
     github_url: Optional[str] = None
-    spacedock_url: Optional[str] = None
+    spacedock_mod_id: Optional[int] = None
 
     @classmethod
     def default(cls, path: StrPath, **kwargs: Any) -> "ModConfig":

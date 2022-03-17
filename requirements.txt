@@ -3,3 +3,5 @@ GitPython
 PyGithub
 python-gnupg
 PyYAML
+jsonobject
+requests

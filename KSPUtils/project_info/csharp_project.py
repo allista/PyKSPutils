@@ -40,6 +40,7 @@ class CSharpProject:
     BLOCK_GIT_TAG = "Git tag"
     BLOCK_ARCHIVE = "Archive"
     BLOCK_GITHUB = "GitHub"
+    BLOCK_SPACEDOCK = "Spacedock"
 
     def __init__(
         self,
