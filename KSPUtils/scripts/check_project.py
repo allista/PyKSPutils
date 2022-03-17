@@ -36,7 +36,6 @@ def for_merge(project: CSharpProject, require_branch: str) -> None:
     with project.context(BLOCK_VERSIONS):
         if (
             not project.assembly_version
-            or not project.change_log_version
             or project.assembly_version != project.change_log_version
         ):
             project.error(
