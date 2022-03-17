@@ -39,8 +39,6 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
         - a git tag with this version should not exist
         - the latest existing git tag with a version should not be on HEAD commit
     """
-    if project.context.failed:
-        sys_exit(project)
     with project.context(project.BLOCK_GIT):
         if project.repo.active_branch.name != require_branch:
             project.error(f"Not on the '{require_branch}' branch")
