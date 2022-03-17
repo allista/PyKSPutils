@@ -91,6 +91,16 @@ class CSharpProject:
     def change_log_version(self) -> Optional[SimpleVersion]:
         return self.change_log.latest_version if self.change_log else None
 
+    def versions_match(self, *, change_log=True, git_tag=True, dll=True, archive=True) -> bool:
+        v = self.assembly_version
+        return (
+            v is not None
+            and (not change_log or v == self.change_log_version)
+            and (not git_tag or v == self.git_tag_version)
+            and (not dll or v == self.dll_version)
+            and (not archive or v == self.archive_version)
+        )
+
     def update_mod_config(self):
         with self.context(self.BLOCK_MOD_CONFIG):
             self.mod_config = ModConfig.default(self.path)
