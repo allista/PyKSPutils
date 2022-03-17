@@ -6,9 +6,9 @@ from KSPUtils.info_extractors.file_extractor import (
     FileExtractorType,
     StrPath,
 )
-from KSPUtils.info_extractors.versions import SimpleVersion
+from KSPUtils.info_extractors.versions import SimpleVersion, VersionBase
 
-ChangeLogEntries = Dict[SimpleVersion, str]
+ChangeLogEntries = Dict[VersionBase, str]
 
 
 class ChangeLog(FileExtractor):
@@ -33,7 +33,7 @@ class ChangeLog(FileExtractor):
             res += [f"## {version}", self.entries[version]]
         return "\n\n".join(res)
 
-    def __getitem__(self, v: SimpleVersion) -> Optional[str]:
+    def __getitem__(self, v: VersionBase) -> Optional[str]:
         return self.entries.get(v)
 
     @property
