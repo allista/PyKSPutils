@@ -1,18 +1,15 @@
-import sys
-
 import click
 
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.project_info.getters import get_git_tag_version
-from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project, sys_exit
+from KSPUtils.scripts.project_cmd import (
+    create_project_cmd,
+    on_error_exit,
+    pass_project,
+    sys_exit,
+)
 
-
-def on_error(message: str, exit_code: int) -> None:
-    click.echo(message, err=True)
-    sys.exit(exit_code)
-
-
-cmd = create_project_cmd(on_error)
+cmd = create_project_cmd(on_error_exit)
 
 
 @cmd.command("create")
@@ -22,7 +19,7 @@ cmd = create_project_cmd(on_error)
     show_default=True,
     help="Require this branch to be checked out to create the tag",
 )
-@pass_project
+@pass_project()
 def create_tag(project: CSharpProject, require_branch: str) -> None:
     """
     Creates lightweight git tag named after AssemblyVersion from AssemblyInfo.cs
@@ -89,7 +86,7 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
 
 
 @cmd.command("remove")
-@pass_project
+@pass_project()
 def remove_tag(project: CSharpProject) -> None:
     """
     Removes git tag named after AssemblyVersion from AssemblyInfo.cs
@@ -99,8 +96,6 @@ def remove_tag(project: CSharpProject) -> None:
     \b
         - the git tag with this version should be the latest tag
     """
-    if project.context.failed:
-        sys_exit(project)
     with project.context(project.BLOCK_GIT_TAG):
         if not project.latest_tag:
             project.error("No tag found")

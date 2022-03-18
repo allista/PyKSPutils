@@ -1,7 +1,7 @@
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, Callable, Optional, TypeVar, cast
 
 import click
 
@@ -13,20 +13,34 @@ def on_error_echo(message: str, _exit_code: int) -> None:
     click.echo(message, err=True)
 
 
+def on_error_exit(message: str, exit_code: int) -> None:
+    on_error_echo(message, exit_code)
+    sys.exit(exit_code)
+
+
 def get_project(ctx: click.Context) -> CSharpProject:
     return cast(CSharpProject, ctx.obj)
 
 
 F = TypeVar("F", bound=Callable[..., Any])
+D = Callable[[F], F]
 
 
-def pass_project(f: F) -> F:
-    @click.pass_context
-    @wraps(f)
-    def project_context_wrapper(ctx: click.Context, *args, **kwargs):
-        return f(get_project(ctx), *args, **kwargs)
+def pass_project(load=True, on_error: Optional[OnErrorHandler] = None) -> D:
+    def deco(f: F) -> F:
+        @click.pass_context
+        @wraps(f)
+        def project_context_wrapper(ctx: click.Context, *args, **kwargs):
+            project = get_project(ctx)
+            if load:
+                project.load(on_error=on_error)
+            elif on_error:
+                project.context.on_error = on_error
+            return f(project, *args, **kwargs)
 
-    return cast(F, project_context_wrapper)
+        return cast(F, project_context_wrapper)
+
+    return deco
 
 
 def sys_exit(project: CSharpProject) -> None:

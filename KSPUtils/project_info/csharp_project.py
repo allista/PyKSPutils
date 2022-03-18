@@ -5,7 +5,7 @@ from typing import List, Optional, cast
 from git import Repo, Tag
 from github import Github
 
-from KSPUtils.errors_context import ErrorsContext
+from KSPUtils.errors_context import ErrorsContext, OnErrorHandler
 from KSPUtils.git_utils import get_repo, latest_tag
 from KSPUtils.github_utils import GithubError, get_github
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
@@ -58,6 +58,13 @@ class CSharpProject:
         self.repo: Optional[Repo] = None
         self.latest_tag: Optional[Tag] = None
         self.git_tag_version: Optional[TagVersion] = None
+        self._loaded = False
+
+    def load(self, force=False, on_error: Optional[OnErrorHandler] = None) -> None:
+        if self._loaded and not force:
+            return
+        if on_error is not None:
+            self.context.on_error = on_error
         self.update_mod_config()
         self.update_assembly_info()
         self.update_changelog()
@@ -71,6 +78,7 @@ class CSharpProject:
         self.update_latest_tag()
         self.update_dll_version()
         self.update_archive_version()
+        self._loaded = True
 
     def _secondary_versions(self, dll=True, archive=True) -> List[str]:
         versions = [

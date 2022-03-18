@@ -8,15 +8,14 @@ from github.Tag import Tag
 from KSPUtils.github_utils import GITHUB_AUTH_FILE, GithubError, set_github_token
 from KSPUtils.gpg_utils import GPG_ID_FILE
 from KSPUtils.project_info.csharp_project import CSharpProject
-from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project, sys_exit
+from KSPUtils.scripts.project_cmd import (
+    create_project_cmd,
+    on_error_exit,
+    pass_project,
+    sys_exit,
+)
 
-
-def on_error(message: str, exit_code: int) -> None:
-    click.echo(message, err=True)
-    sys.exit(exit_code)
-
-
-cmd = create_project_cmd(on_error)
+cmd = create_project_cmd()
 
 GPG_FILE_HELP = (
     f"Requires the {GPG_ID_FILE} file to be in this folder or in any of its parents."
@@ -24,9 +23,8 @@ GPG_FILE_HELP = (
 
 
 @cmd.group("github")
-@pass_project
-def github_grp(project: CSharpProject):
-    project.update_github()
+def github_grp():
+    pass
 
 
 @github_grp.command(
@@ -38,7 +36,7 @@ def github_grp(project: CSharpProject):
     """,
 )
 @click.option("--token", prompt="GitHub token", help="GitHub OAuth token.")
-@pass_project
+@pass_project()
 def set_token(project: CSharpProject, token) -> None:
     with project.context(project.BLOCK_GITHUB, GithubError):
         set_github_token(token, ".")
@@ -58,12 +56,13 @@ def set_token(project: CSharpProject, token) -> None:
     {GPG_FILE_HELP}
     """,
 )
-@pass_project
+@pass_project(on_error=on_error_exit)
 def upload_to_github(
     project: CSharpProject,
 ) -> None:
     if not project.mod_config.github_url or not project.mod_config.archive_path:
         sys.exit(0)
+    project.update_github()
     with project.context(project.BLOCK_GITHUB, github.GithubException):
         # see if locally everything matches
         if not project.versions_match():

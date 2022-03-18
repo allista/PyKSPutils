@@ -11,7 +11,7 @@ BLOCK_VERSIONS = "Version check"
 
 
 @cmd.command("show-versions")
-@pass_project
+@pass_project()
 def show_versions(project: CSharpProject) -> None:
     click.echo(f"{project}")
 
@@ -23,7 +23,7 @@ def show_versions(project: CSharpProject) -> None:
     show_default=True,
     help="Require this branch to be checked out",
 )
-@pass_project
+@pass_project()
 def for_merge(project: CSharpProject, require_branch: str) -> None:
     """Checks project before merging of the development branch into stable branch"""
     with project.context(project.BLOCK_GIT):
@@ -72,7 +72,7 @@ def for_merge(project: CSharpProject, require_branch: str) -> None:
     show_default=True,
     help="Require this branch to be checked out",
 )
-@pass_project
+@pass_project()
 def for_release(project: CSharpProject, require_branch: str) -> None:
     """Checks project before building the release archive"""
     with project.context(project.BLOCK_GIT):
@@ -100,7 +100,7 @@ def for_release(project: CSharpProject, require_branch: str) -> None:
 
 
 @cmd.command("check-archive")
-@pass_project
+@pass_project()
 def check_archive(project: CSharpProject) -> None:
     """
     Checks for existence and version of a release archive
