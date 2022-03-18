@@ -24,11 +24,15 @@ class VersionBase:
     revision: Optional[int] = None
     date: Optional[datetime] = None
 
-    def __str__(self) -> str:
-        short = f"v{self.major}.{self.minor}.{self.build or 0}"
+    @property
+    def as_str_without_prefix(self):
+        short = f"{self.major}.{self.minor}.{self.build or 0}"
         if self.revision is not None:
             return f"{short}.{self.revision}"
         return short
+
+    def __str__(self) -> str:
+        return f"v{self.as_str_without_prefix}"
 
     def __repr__(self):
         if not self.date:
