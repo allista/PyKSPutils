@@ -120,7 +120,7 @@ class SimpleVersion(RegexVersionBase):
     """
 
     _re = re.compile(
-        r"v(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
+        r"v?(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
     )
 
 
@@ -189,7 +189,7 @@ class MaxKSPVersion(MinKSPVersion):
 
 
 @dataclass(frozen=True, repr=False, eq=False)
-class FilenameVersion(RegexVersionBase):
+class FilenameVersion(SimpleVersion):
     """
     Representation of a version from file name
     """
@@ -197,10 +197,6 @@ class FilenameVersion(RegexVersionBase):
     title: str = ""
     filename: str = ""
     filepath: StrPath = ""
-
-    _re = re.compile(
-        r"v?(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
-    )
 
     def __repr__(self):
         return f"{super().__repr__()} [{self.title}]"
