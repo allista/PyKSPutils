@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Type, TypeVar
+from typing import Callable, List, Optional, Tuple, Type, TypeVar
 
 
 class ErrorsContextError(Exception):
@@ -17,6 +17,8 @@ class Block:
 
 ErrorsContextType = TypeVar("ErrorsContextType", bound="ErrorsContext")
 
+OnErrorHandler = Callable[[str, int], None]
+
 
 class ErrorsContext:
     """
@@ -31,11 +33,13 @@ class ErrorsContext:
     def __init__(
         self,
         *handle_exceptions: Type[BaseException],
+        on_error: Optional[OnErrorHandler] = None
     ):
         self._common_exceptions = handle_exceptions
         self._block: Optional[Block] = None
         self._blocks_stack: List[Block] = []
         self._errors: defaultdict[str, List[str]] = defaultdict(list)
+        self.on_error: Optional[OnErrorHandler] = on_error
 
     def __call__(
         self, block: str, *handle_exceptions: Type[BaseException]
@@ -95,7 +99,10 @@ class ErrorsContext:
             self._on_error(error_message)
 
     def _on_error(self, message: str) -> None:
-        print(message, file=sys.stderr)
+        if self.on_error is not None:
+            self.on_error(message, self.exit_code)
+        else:
+            print(message, file=sys.stderr)
 
     def _on_warning(self, message: str) -> None:
         print(message, file=sys.stderr)

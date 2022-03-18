@@ -39,7 +39,7 @@ def create_project_cmd(on_error: OnErrorHandler = on_error_echo) -> click.Group:
     def cmd(ctx: click.Context):
         ctx.obj = CSharpProject(
             Path.cwd(),
-            errors_context=ExitCodeContext(on_error, FileNotFoundError),
+            errors_context=ExitCodeContext(FileNotFoundError, on_error=on_error),
         )
 
     return cmd

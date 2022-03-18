@@ -21,12 +21,11 @@ class ExitCodeContext(ErrorsContext):
 
     def __init__(
         self,
-        on_error: Optional[OnErrorHandler] = None,
         *handle_exceptions: Type[BaseException],
         block_ids: Optional[Dict[str, int]] = None,
+        on_error: Optional[OnErrorHandler] = None,
     ):
-        super().__init__(*handle_exceptions)
-        self._on_error_handler = on_error
+        super().__init__(*handle_exceptions, on_error=on_error)
         self._block_ids: Dict[str, int] = block_ids or {}
 
     def __call__(
@@ -54,12 +53,6 @@ class ExitCodeContext(ErrorsContext):
         self._block_ids[block] = existing_block_id
         super().__call__(block, *handle_exceptions)
         return self
-
-    def _on_error(self, message: str) -> None:
-        if self._on_error_handler is not None:
-            self._on_error_handler(message, self.exit_code)
-        else:
-            super()._on_error(message)
 
     @property
     def exit_code(self) -> int:
