@@ -33,13 +33,13 @@ class CSharpProjectError(Exception):
 
 
 class CSharpProject:
+    BLOCK_MOD_CONFIG = "Mod config"
     BLOCK_ASSEMBLY_INFO = "AssemblyInfo"
     BLOCK_CHANE_LOG = "ChangeLog"
     BLOCK_GIT = "Git"
     BLOCK_GIT_TAG = "Git tag"
-    BLOCK_GITHUB = "GitHub"
-    BLOCK_MOD_CONFIG = "Mod config"
     BLOCK_ARCHIVE = "Archive"
+    BLOCK_GITHUB = "GitHub"
 
     def __init__(
         self,
