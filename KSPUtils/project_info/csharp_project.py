@@ -128,7 +128,9 @@ class CSharpProject:
     def change_log_version(self) -> Optional[SimpleVersion]:
         return self.change_log.latest_version if self.change_log else None
 
-    def versions_match(self, *, change_log=True, git_tag=True, dll=True, archive=True) -> bool:
+    def versions_match(
+        self, *, change_log=True, git_tag=True, dll=True, archive=True
+    ) -> bool:
         v = self.assembly_version
         return (
             v is not None
