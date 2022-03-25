@@ -43,6 +43,10 @@ class ChangeLog(FileExtractor):
     def latest_version(self) -> Optional[ChangeLogVersion]:
         return next((v for v in self.entries), None)
 
+    @property
+    def latest_entry(self) -> Optional[str]:
+        return self[self.latest_version]
+
     @classmethod
     def from_file(
         cls: Type[FileExtractorType], filename: StrPath, **kwargs: Any
