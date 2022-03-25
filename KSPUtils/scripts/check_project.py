@@ -11,9 +11,21 @@ BLOCK_VERSIONS = "Version check"
 
 
 @cmd.command("show-versions")
+@click.option(
+    "--print-changelog",
+    help="Print out the latest changelog entry",
+    is_flag=True,
+)
 @pass_project()
-def show_versions(project: CSharpProject) -> None:
-    click.echo(f"{project}")
+def show_versions(project: CSharpProject, print_changelog) -> None:
+    click.echo(project)
+    if print_changelog and project.change_log:
+        change_log = project.change_log.latest_entry
+        if change_log:
+            click.echo(
+                f"\nLatest change log entry: {project.change_log.latest_version}"
+            )
+            click.echo(change_log)
 
 
 @cmd.command("for-merge")
