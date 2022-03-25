@@ -73,9 +73,22 @@ def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
     return _parse_from_paths(ExifVersion, [name], paths)
 
 
-def get_archive_version(name: str, path: StrPath) -> ArchiveVersion:
+def get_archive_version(name: str, path: StrPath, extension: str = '.zip') -> ArchiveVersion:
+    """
+    Searches for a file with specified extension and filename
+    that matches the archive naming scheme as defined by the :class:`ArchiveVersion`,
+    with title equal to the provided name.
+
+    :param name: The "name" part of the archive filename.
+    :param path: The path to search for the archive in.
+    :param extension: The ending of a file name to filter files by.
+    :return: The ArchiveVersion of the found archive.
+    :raises FileNotFoundError: If the archive was not found.
+    """
     archive_version: Optional[ArchiveVersion] = None
     for filepath in Path(path).iterdir():
+        if not filepath.name.endswith(extension):
+            continue
         try:
             file_version = ArchiveVersion.from_file(filepath)
         except FileNotFoundError:
