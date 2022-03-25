@@ -91,7 +91,9 @@ class RegexVersionBase(VersionBase, RegexExtractor):
     Version info found in text using regex
     """
 
-    _re = re.compile("")
+    _re = re.compile(
+        r"(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
+    )
 
     @classmethod
     def _extract(cls, match: Match) -> Dict[str, Any]:
@@ -111,9 +113,7 @@ class AssemblyVersion(RegexVersionBase):
     """
 
     _re = re.compile(
-        r'\[assembly: +AssemblyVersion\("'
-        r"(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
-        r'"\)]'
+        r'\[assembly: +AssemblyVersion\("' + RegexVersionBase._re.pattern + r'"\)]'
     )
 
 
@@ -123,16 +123,16 @@ class SimpleVersion(RegexVersionBase):
     Representation of a simple version
     """
 
-    _re = re.compile(
-        r"v?(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
-    )
+    _re = re.compile(f"v?{RegexVersionBase._re.pattern}")
 
 
 @dataclass(frozen=True, repr=False, eq=False)
-class TagVersion(SimpleVersion):
+class TagVersion(RegexVersionBase):
     """
     Representation of a version from git tag
     """
+
+    _re = re.compile(f"^v{RegexVersionBase._re.pattern}$")
 
     commit_sha: str = ""
 
@@ -248,9 +248,7 @@ class ExifVersion(FilenameVersion):
     Representation of a version from exiftool output
     """
 
-    _re = re.compile(
-        r"Product Version\s+: (?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
-    )
+    _re = re.compile(r"Product Version\s+: " + RegexVersionBase._re.pattern)
 
     @classmethod
     def from_file(
