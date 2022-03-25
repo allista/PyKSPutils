@@ -3,6 +3,7 @@ from typing import Optional
 
 import click
 import github.GithubException
+from github.GitReleaseAsset import GitReleaseAsset
 from github.Tag import Tag
 
 from KSPUtils import spacedock
@@ -114,6 +115,16 @@ def upload_to_github(project: CSharpProject, update) -> None:
             if release.body != change_log:
                 click.echo(f"Updating the change log for: {project.assembly_version}")
                 release.update_release(release.title, change_log)
+        # check if the asset already exists
+        existing_assert: Optional[GitReleaseAsset] = None
+        for asset in release.get_assets():
+            if asset.name == project.archive_version.filename:
+                existing_assert = asset
+        if existing_assert:
+            if not update:
+                project.error(f'Asset already exists: {existing_assert.browser_download_url}')
+            click.echo(f"Removing existing asset: {existing_assert.name}")
+            existing_assert.delete_asset()
         click.echo(f"Uploading asset: {project.archive_version.filepath}")
         release.upload_asset(f"{project.archive_version.filepath}")
         click.echo(
