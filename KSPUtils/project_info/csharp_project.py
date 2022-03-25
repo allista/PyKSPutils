@@ -14,8 +14,8 @@ from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import (
     ArchiveVersion,
     AssemblyVersion,
+    ChangeLogVersion,
     ExifVersion,
-    SimpleVersion,
     TagVersion,
 )
 from KSPUtils.path_utils import get_search_paths
@@ -126,7 +126,7 @@ class CSharpProject:
         return self.mod_config.change_log
 
     @property
-    def change_log_version(self) -> Optional[SimpleVersion]:
+    def change_log_version(self) -> Optional[ChangeLogVersion]:
         return self.change_log.latest_version if self.change_log else None
 
     def versions_match(

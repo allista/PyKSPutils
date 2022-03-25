@@ -6,7 +6,10 @@ from KSPUtils.info_extractors.file_extractor import (
     FileExtractorType,
     StrPath,
 )
-from KSPUtils.info_extractors.versions import SimpleVersion, VersionBase
+from KSPUtils.info_extractors.versions import (
+    ChangeLogVersion,
+    VersionBase,
+)
 
 ChangeLogEntries = Dict[VersionBase, str]
 
@@ -37,7 +40,7 @@ class ChangeLog(FileExtractor):
         return self.entries.get(v)
 
     @property
-    def latest_version(self) -> Optional[SimpleVersion]:
+    def latest_version(self) -> Optional[ChangeLogVersion]:
         return next((v for v in self.entries), None)
 
     @classmethod
@@ -48,10 +51,10 @@ class ChangeLog(FileExtractor):
         header = ""
         entries: ChangeLogEntries = {}
         with filepath.open("rt", encoding="utf8") as inp:
-            version: Optional[SimpleVersion] = None
+            version: Optional[ChangeLogVersion] = None
             entry: List[str] = []
             for line in inp:
-                v = SimpleVersion.from_str(line, date=mod_time)
+                v = ChangeLogVersion.from_str(line, date=mod_time)
                 if v:
                     entry_text = dedent("".join(entry)).rstrip("\n\r")
                     if version:

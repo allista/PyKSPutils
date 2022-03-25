@@ -127,6 +127,15 @@ class SimpleVersion(RegexVersionBase):
 
 
 @dataclass(frozen=True, repr=False, eq=False)
+class ChangeLogVersion(RegexVersionBase):
+    """
+    Representation a version from a change log file
+    """
+
+    _re = re.compile(r"^[\s*#]*" + f"v{RegexVersionBase._re.pattern}")
+
+
+@dataclass(frozen=True, repr=False, eq=False)
 class TagVersion(RegexVersionBase):
     """
     Representation of a version from git tag
