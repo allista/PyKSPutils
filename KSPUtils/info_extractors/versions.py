@@ -170,9 +170,13 @@ class MinKSPVersion(RegexVersionBase):
     Representation of a MinKSPVersion from AssemblyInfo.cs
     """
 
-    _KSPVersion = r"KSPVersion *= *new Version\( *(?P<major>\d+) *, *(?P<minor>\d+) *(, *(?P<build>\d)+ *)?\) *;"
+    _KSPVersion_pattern = (
+        r"KSPVersion *= *new Version\( *"
+        r"(?P<major>\d+) *, *(?P<minor>\d+) *(, *(?P<build>\d)+"
+        r" *)?\) *;"
+    )
 
-    _re = re.compile(r"\s*Min" + _KSPVersion)
+    _re = re.compile(r"\s*Min" + _KSPVersion_pattern)
 
     @classmethod
     def _extract(cls, match: Match) -> Dict[str, Any]:
@@ -189,7 +193,7 @@ class MaxKSPVersion(MinKSPVersion):
     Representation of a MaxKSPVersion from AssemblyInfo.cs
     """
 
-    _re = re.compile(r"\s*Max" + MinKSPVersion._KSPVersion)
+    _re = re.compile(r"\s*Max" + MinKSPVersion._KSPVersion_pattern)
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -203,7 +207,7 @@ class FilenameVersion(SimpleVersion):
     filepath: StrPath = ""
 
     def __repr__(self):
-        return f"{super().__repr__()} [{self.title}]"
+        return f"{super().__repr__()} [{self.title}] {self.filename}"
 
     @classmethod
     def from_file(
