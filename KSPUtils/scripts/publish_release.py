@@ -58,10 +58,13 @@ def set_token(project: CSharpProject, token) -> None:
     {GPG_FILE_HELP}
     """,
 )
+@click.option(
+    "--update",
+    help="Update the release, if it exists.",
+    is_flag=True,
+)
 @pass_project(on_error=on_error_exit)
-def upload_to_github(
-    project: CSharpProject,
-) -> None:
+def upload_to_github(project: CSharpProject, update) -> None:
     if not project.mod_config.github_url or not project.mod_config.archive_path:
         sys.exit(0)
     project.update_github()
@@ -89,10 +92,10 @@ def upload_to_github(
             project.error(f"Git tag is not published: {project.git_tag_version!r}")
         # check if we already have the release for this tag
         try:
-            published_release = repo.get_release(published_tag.name)
-            if published_release:
+            release = repo.get_release(published_tag.name)
+            if release and not update:
                 project.error(
-                    f"Release already exists: {published_release.title} at {published_release.html_url}"
+                    f"Release already exists: {release.title} at {release.html_url}"
                 )
         except github.UnknownObjectException:
             pass
@@ -102,11 +105,19 @@ def upload_to_github(
             project.error(
                 f"Unable to get change log entry for: {project.assembly_version}"
             )
-        # create the release
-        new_release = repo.create_git_release(tag.name, tag.name, change_log)
-        new_release.upload_asset(f"{project.archive_version.filepath}")
+        # create or update the release
+        if not release:
+            click.echo(f"Creating new release: {tag.name}")
+            release = repo.create_git_release(tag.name, tag.name, change_log)
+        else:
+            click.echo(f"Updating the release: {release.title}")
+            if release.body != change_log:
+                click.echo(f"Updating the change log for: {project.assembly_version}")
+                release.update_release(release.title, change_log)
+        click.echo(f"Uploading asset: {project.archive_version.filepath}")
+        release.upload_asset(f"{project.archive_version.filepath}")
         click.echo(
-            f"Successfully published release {new_release.title}: {new_release.html_url}"
+            f"Successfully published release {release.title}: {release.html_url}"
         )
     sys_exit(project)
 
