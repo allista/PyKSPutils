@@ -13,14 +13,14 @@ setup(
     scripts=[
         "grep_parts",
         "select_from_parts",
-        "update_KSP_references",
         "make_mod_release",
     ],
     entry_points={
         "console_scripts": [
             "check_project = KSPUtils.scripts.check_project:cmd",
             "git_tag_by_assembly_info = KSPUtils.scripts.git_tag_by_assembly_info:cmd",
-            "publish_release = KSPUtils.scripts.publish_release:cmd"
+            "publish_release = KSPUtils.scripts.publish_release:cmd",
+            "update_KSP_references = KSPUtils.scripts.update_KSP_references:cmd",
         ],
     },
 )
