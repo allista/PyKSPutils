@@ -26,22 +26,27 @@ class ChangeLog(FileExtractor):
         entries: Optional[ChangeLogEntries] = None,
     ):
         self.header = header
-        self.entries: ChangeLogEntries = (
-            {v: entries[v] for v in sorted(entries, reverse=True)} if entries else {}
-        )
+        self._entries = entries or {}
+        self._order: List[VersionBase] = sorted(entries, reverse=True)
 
     def __str__(self):
         res = [self.header] if self.header else []
-        for version in self.entries:
-            res += [f"## {version}", self.entries[version]]
+        for version in self._entries:
+            res += [f"## {version}", self._entries[version]]
         return "\n\n".join(res)
 
     def __getitem__(self, v: VersionBase) -> Optional[str]:
-        return self.entries.get(v)
+        return self._entries.get(v)
+
+    def __setitem__(self, v: VersionBase, entry) -> None:
+        if v not in self._entries:
+            self._order.append(v)
+            self._order.sort()
+        self._entries[v] = entry
 
     @property
     def latest_version(self) -> Optional[ChangeLogVersion]:
-        return next((v for v in self.entries), None)
+        return next(iter(self._order), None)
 
     @property
     def latest_entry(self) -> Optional[str]:
