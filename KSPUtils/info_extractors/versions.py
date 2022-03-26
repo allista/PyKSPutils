@@ -96,7 +96,7 @@ class RegexVersionBase(VersionBase, RegexExtractor):
     )
 
     @classmethod
-    def _extract(cls, match: Match) -> Dict[str, Any]:
+    def _extract(cls: Type[RegexExtractorType], match: Match) -> Dict[str, Any]:
         rev = match.group("revision")
         return {
             "major": int(match.group("major")),

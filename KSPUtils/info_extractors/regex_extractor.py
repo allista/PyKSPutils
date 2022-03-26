@@ -21,7 +21,7 @@ class RegexExtractor(FileExtractor):
         return cls._find_first(cls._re, text)
 
     @classmethod
-    def _extract(cls, match: Match) -> Dict[str, Any]:
+    def _extract(cls: Type[RegexExtractorType], match: Match) -> Dict[str, Any]:
         """Extract init kwargs for the Extractor instance from a Match"""
         raise NotImplementedError()
 
