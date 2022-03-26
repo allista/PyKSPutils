@@ -132,7 +132,27 @@ class ChangeLogVersion(RegexVersionBase):
     Representation a version from a change log file
     """
 
-    _re = re.compile(r"^[\s*#]*" + f"v{RegexVersionBase._re.pattern}")
+    title: str = ""
+
+    _re = re.compile(
+        r"^[#*]*\s*"
+        + f"[_*]*v{RegexVersionBase._re.pattern}[_*]*"
+        + r"\s*(?P<title>.+)?$"
+    )
+
+    def __str__(self):
+        short = super().__str__()
+        if self.title:
+            return f"{short} {self.title}"
+        return short
+
+    @classmethod
+    def _extract(cls: Type[RegexExtractorType], match: Match) -> Dict[str, Any]:
+        kwargs = super()._extract(match)
+        title = match.group("title")
+        if title:
+            kwargs["title"] = title
+        return kwargs
 
 
 @dataclass(frozen=True, repr=False, eq=False)
