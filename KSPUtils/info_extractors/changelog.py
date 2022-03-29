@@ -1,8 +1,8 @@
-from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
+from KSPUtils.file_saver_mixin import FileSaverMixin
 from KSPUtils.info_extractors.file_extractor import (
     FileExtractor,
     FileExtractorType,
@@ -16,7 +16,7 @@ from KSPUtils.info_extractors.versions import (
 ChangeLogEntries = Dict[VersionBase, str]
 
 
-class ChangeLog(FileExtractor):
+class ChangeLog(FileSaverMixin, FileExtractor):
     """
     Extracts change log records and stores them
     in order and keyed by version
@@ -25,11 +25,10 @@ class ChangeLog(FileExtractor):
     def __init__(
         self,
         filepath: Path,
-        date: datetime = datetime.now(),
         header: str = "",
         entries: Optional[ChangeLogEntries] = None,
     ):
-        super().__init__(filepath, date)
+        super().__init__(filepath)
         self.header = header
         self._entries = entries or {}
         self._order: List[VersionBase] = sorted(entries, reverse=True)
@@ -48,6 +47,7 @@ class ChangeLog(FileExtractor):
             self._order.append(v)
             self._order.sort()
         self._entries[v] = entry
+        self._dirty = True
 
     @property
     def latest_version(self) -> Optional[ChangeLogVersion]:
@@ -79,4 +79,4 @@ class ChangeLog(FileExtractor):
                     entry = []
                 else:
                     entry.append(line)
-        return cls(filepath, mod_time, header, entries)
+        return cls(filepath=filepath, header=header, entries=entries)

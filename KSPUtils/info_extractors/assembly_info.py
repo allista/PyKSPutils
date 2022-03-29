@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, TextIO, Type
 
+from KSPUtils.file_saver_mixin import FileSaverMixin
 from KSPUtils.info_extractors.file_extractor import (
     FileExtractor,
     FileExtractorType,
@@ -17,9 +18,10 @@ from KSPUtils.info_extractors.versions import (
 )
 
 
-class AssemblyInfo(FileExtractor):
+class AssemblyInfo(FileSaverMixin, FileExtractor):
     def __init__(self, filepath: Path, date: datetime, content: TextIO) -> None:
-        super().__init__(filepath, date)
+        super().__init__(filepath)
+        self.date = date
         self._content = [line.rstrip("\n\r") for line in content]
         self._line_by_entity_id: Dict[RegexExtractorType, int] = {}
         self.title = self._extract_from_content(AssemblyTitle)
@@ -29,7 +31,6 @@ class AssemblyInfo(FileExtractor):
         )
         self.min_ksp_version = self._extract_from_content(MinKSPVersion, date=date)
         self.max_ksp_version = self._extract_from_content(MaxKSPVersion, date=date)
-        self._dirty = False
 
     def _extract_from_content(
         self, extractor: Type[RegexExtractorType], **kwargs: Any
@@ -43,14 +44,6 @@ class AssemblyInfo(FileExtractor):
 
     def __str__(self):
         return "\n".join(self._content)
-
-    @property
-    def is_dirty(self):
-        return self._dirty
-
-    def save(self):
-        super().save()
-        self._dirty = False
 
     def replace(self, entity_name: str, replacement: str, group: GroupType = 1) -> bool:
         try:
@@ -107,4 +100,4 @@ class AssemblyInfo(FileExtractor):
     ) -> Optional[FileExtractorType]:
         filepath, mod_time = cls._resolve_path(filename)
         with filepath.open("rt") as inp:
-            return cls(filepath, mod_time, inp)
+            return cls(filepath=filepath, date=mod_time, content=inp)
