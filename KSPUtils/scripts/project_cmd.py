@@ -9,12 +9,7 @@ from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.exit_code_context import ExitCodeContext, OnErrorHandler
 
 
-def on_error_echo(message: str, _exit_code: int) -> None:
-    click.echo(message, err=True)
-
-
-def on_error_exit(message: str, exit_code: int) -> None:
-    on_error_echo(message, exit_code)
+def on_error_exit(_message: str, exit_code: int) -> None:
     sys.exit(exit_code)
 
 
@@ -47,7 +42,7 @@ def sys_exit(project: CSharpProject) -> None:
     sys.exit(project.context.exit_code)
 
 
-def create_project_cmd(on_error: OnErrorHandler = on_error_echo) -> click.Group:
+def create_project_cmd(on_error: Optional[OnErrorHandler] = None) -> click.Group:
     @click.group()
     @click.pass_context
     def cmd(ctx: click.Context):

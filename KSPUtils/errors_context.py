@@ -1,7 +1,9 @@
-import sys
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Tuple, Type, TypeVar
+
+logger = logging.getLogger(__name__)
 
 
 class ErrorsContextError(Exception):
@@ -29,6 +31,7 @@ class ErrorsContext:
     """
 
     message_template = "[{block.name}] {message}"
+    logger = logger
 
     def __init__(
         self,
@@ -99,13 +102,12 @@ class ErrorsContext:
             self._on_error(error_message)
 
     def _on_error(self, message: str) -> None:
+        self.logger.error(message)
         if self.on_error is not None:
             self.on_error(message, self.exit_code)
-        else:
-            print(message, file=sys.stderr)
 
     def _on_warning(self, message: str) -> None:
-        print(message, file=sys.stderr)
+        self.logger.warning(message)
 
     @property
     def blocks(self) -> List[str]:
