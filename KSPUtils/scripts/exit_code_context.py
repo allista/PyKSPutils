@@ -43,11 +43,12 @@ class ExitCodeContext(ErrorsContext):
         existing_block_id = self._block_ids.get(
             block, len(self._block_ids) if block_id is None else block_id
         )
-        if not (0 <= existing_block_id <= 7):
+        if not 0 <= existing_block_id <= 7:
             raise ExitCodeContextError("ExitCodeContext: block id should be in [0, 7]")
         if block_id is not None and existing_block_id != block_id:
             raise ExitCodeContextError(
-                f"ExitCodeContext: block id {block_id} differs from the existing block {block}[{existing_block_id}]"
+                f"ExitCodeContext: block id {block_id} differs "
+                f"from the existing block {block}[{existing_block_id}]"
             )
         self._block_ids[block] = existing_block_id
         super().__call__(block, *handle_exceptions)

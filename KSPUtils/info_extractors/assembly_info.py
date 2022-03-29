@@ -18,6 +18,7 @@ from KSPUtils.info_extractors.versions import (
 )
 
 
+# pylint: disable=too-many-instance-attributes
 class AssemblyInfo(FileSaverMixin, FileExtractor):
     def __init__(self, filepath: Path, date: datetime, content: TextIO) -> None:
         super().__init__(filepath)
@@ -48,8 +49,8 @@ class AssemblyInfo(FileSaverMixin, FileExtractor):
     def replace(self, entity_name: str, replacement: str, group: GroupType = 1) -> bool:
         try:
             entity = getattr(self, entity_name)
-        except AttributeError:
-            raise AttributeError(f"Unknown entity: {entity_name}")
+        except AttributeError as e:
+            raise AttributeError(f"Unknown entity: {entity_name}") from e
         if entity is None:
             return False
         line_num = self._line_by_entity_id.get(id(entity))
@@ -99,5 +100,5 @@ class AssemblyInfo(FileSaverMixin, FileExtractor):
         cls: Type[FileExtractorType], filename: StrPath, **kwargs: Any
     ) -> Optional[FileExtractorType]:
         filepath, mod_time = cls._resolve_path(filename)
-        with filepath.open("rt") as inp:
+        with filepath.open("rt", encoding="utf8") as inp:
             return cls(filepath=filepath, date=mod_time, content=inp)

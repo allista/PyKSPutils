@@ -148,7 +148,7 @@ class ChangeLogVersion(RegexVersionBase):
 
     @classmethod
     def _extract(cls: Type[RegexExtractorType], match: Match) -> Dict[str, Any]:
-        kwargs = super()._extract(match)
+        kwargs = super()._extract(match)  # type: ignore[misc]
         title = match.group("title")
         if title:
             kwargs["title"] = title
@@ -270,7 +270,7 @@ class ArchiveVersion(FilenameVersion):
         filename: StrPath,
         **kwargs: Any,
     ) -> RegexExtractorType:
-        return super().from_file(
+        return super().from_file(  # type: ignore[misc]
             filename, title=ArchiveTitle.from_file_as_str(filename)
         )
 
@@ -281,7 +281,7 @@ class ExifVersion(FilenameVersion):
     Representation of a version from exiftool output
     """
 
-    _re = re.compile(r"Product Version\s+: " + RegexVersionBase._re.pattern)
+    _re = re.compile(r"Product Version\s+: " + RegexVersionBase.pattern())
 
     @classmethod
     def from_file(

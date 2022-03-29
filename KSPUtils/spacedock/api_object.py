@@ -44,4 +44,4 @@ class ApiObject(jo.JsonObject):
             res.raise_for_status()
             return cls(res.json())
         except Exception as e:
-            raise SpacedockError(f"Unable to get: {url}", e)
+            raise SpacedockError(f"Unable to get: {url}", e) from e

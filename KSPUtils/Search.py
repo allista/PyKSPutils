@@ -5,11 +5,12 @@ from itertools import chain
 from .Objects import NamedObject
 
 
-class _AbstractTerm(object):
+class _AbstractTerm:
     def __init__(self):
         self.negative = False
 
-    def _match_object(self, obj):
+    # pylint: disable=no-self-use
+    def _match_object(self, _obj: NamedObject) -> bool:
         """
         Returns True if the object matches the term positively, False otherwise.
         :type obj: NamedObject
@@ -34,7 +35,7 @@ class _AbstractTerm(object):
 
 
 class Term(list, _AbstractTerm):
-    class Node(object):
+    class Node:
         def __init__(self, nodestring):
             self._nonzero = bool(nodestring)
             node_name = nodestring.split(":")
@@ -52,7 +53,7 @@ class Term(list, _AbstractTerm):
             return (
                 self.node.pattern
                 if not self.name
-                else "%s:%s" % (self.node.pattern, self.name.pattern)
+                else f"{self.node.pattern}:{self.name.pattern}"
             )
 
         def __repr__(self):
@@ -179,10 +180,7 @@ class Group(list, _AbstractTerm):
         return all(t.match(obj) for t in self)
 
     def __str__(self):
-        return "{%s%s}" % (
-            _AbstractTerm.__str__(self),
-            " AND ".join(str(t) for t in self),
-        )
+        return f"{{{_AbstractTerm.__str__(self)}{' AND '.join(str(t) for t in self)}}}"
 
     def __repr__(self):
         return str(self)
@@ -199,7 +197,7 @@ class Query(_AbstractTerm):
             return self.term1.match(obj) or self.term2.match(obj)
 
         def __str__(self):
-            return _AbstractTerm.__str__(self) + ("%s OR %s" % (self.term1, self.term2))
+            return _AbstractTerm.__str__(self) + f"{self.term1} OR {self.term2}"
 
     def __init__(self, term=None):
         _AbstractTerm.__init__(self)
@@ -245,7 +243,7 @@ class Query(_AbstractTerm):
 
         def __str__(self):
             return "{\n%s\n}" % "\n".join(
-                "    %s" % l for n in self for l in str(n).splitlines()
+                f"    {line}" for token in self for line in str(token).splitlines()
             )
 
     @classmethod
@@ -265,15 +263,15 @@ class Query(_AbstractTerm):
                 )
             return []
 
-        for i, l in enumerate(string):
-            if l == "{":
+        for letter in string:
+            if letter == "{":
                 buf = flush(buf)
                 cur = cur.subtree()
-            elif l == "}":
+            elif letter == "}":
                 buf = flush(buf)
                 cur = cur.parent
             else:
-                buf.append(l)
+                buf.append(letter)
         flush(buf)
         while len(tree) == 1 and isinstance(tree[0], Query._tree):
             tree = tree[0]

@@ -22,7 +22,7 @@ def get_github_token(path: StrPath) -> str:
         with token_file.open("rb") as inp:
             return decrypt(inp)
     except Exception as e:
-        raise GithubError(f"Unable to get github token", e)
+        raise GithubError("Unable to get github token", e) from e
 
 
 def set_github_token(token: str, path: StrPath) -> None:
@@ -30,7 +30,7 @@ def set_github_token(token: str, path: StrPath) -> None:
         data = encrypt(token)
         (Path(path) / GITHUB_AUTH_FILE).write_text(data, encoding="utf8")
     except Exception as e:
-        raise GithubError(f"Unable to set github token", e)
+        raise GithubError("Unable to set github token", e) from e
 
 
 def get_github(path: StrPath) -> Github:

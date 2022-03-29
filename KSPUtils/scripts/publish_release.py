@@ -195,7 +195,8 @@ def upload_to_spacedock(
         published_version = mod.get_version(project.assembly_version)
         if published_version:
             project.error(
-                f"Release already exists: {published_version.friendly_version} at {published_version.download_url}"
+                f"Release already exists: {published_version.friendly_version} "
+                f"at {published_version.download_url}"
             )
         # get the change log entry for the release body
         change_log = project.change_log[project.assembly_version]

@@ -68,7 +68,8 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
                 )
             if project.git_tag_version == project.assembly_version:
                 project.error(
-                    f"Assembly version {project.assembly_version} is equal to the latest git tag version.\n"
+                    f"Assembly version {project.assembly_version} "
+                    "is equal to the latest git tag version.\n"
                     "You have to investigate and remove the tag manually.",
                 )
     if not project.context.failed:

@@ -14,7 +14,7 @@ class YamlExtractor(FileExtractor):
     def from_file(
         cls: Type[FileExtractorType], filename: StrPath, **kwargs: Any
     ) -> Optional[FileExtractorType]:
-        filepath, mod_time = cls._resolve_path(filename)
+        filepath, _mod_time = cls._resolve_path(filename)
         with filepath.open("rt", encoding="utf8") as inp:
             data = safe_load(inp) or {}
             return cls(**data, **kwargs)

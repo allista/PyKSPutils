@@ -15,8 +15,9 @@ class ListDict(object):
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._values[key]
-        elif isinstance(key, str):
+        if isinstance(key, str):
             return self._values[self._index[key][0]]
+        return None
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
@@ -57,17 +58,17 @@ class ListDict(object):
         return [self._values[i] for i in idx]
 
 
-class ValueCollection(object):
-    class Value(object):
-        def __init__(self, name, value, comment=""):
+class ValueCollection:
+    class Value:
+        def __init__(self, name: str, value: Any, comment="") -> None:
             self.name = name
             self.value = value
             self.comment = comment
 
         def __str__(self):
-            s = "%s = %s" % (self.name, self.value)
+            s = f"{self.name} = {self.value}"
             if self.comment:
-                s += " //%s" % self.comment
+                s += f" //{self.comment}"
             return s
 
     def __init__(self):

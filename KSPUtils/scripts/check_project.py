@@ -123,7 +123,8 @@ def check_archive(project: CSharpProject) -> None:
     with project.context(project.BLOCK_ARCHIVE):
         if not project.archive_version:
             project.error(
-                f"No archive for {project.assembly_info.title} is found within {project.mod_config.archive_path}"
+                f"No archive for {project.assembly_info.title} "
+                f"is found within {project.mod_config.archive_path}"
             )
         elif project.archive_version != project.assembly_version:
             project.error(

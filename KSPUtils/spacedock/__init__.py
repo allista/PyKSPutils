@@ -18,7 +18,7 @@ def login(path: StrPath) -> User:
             data = decrypt(inp)
         return User.login(*data.splitlines())
     except Exception as e:
-        raise SpacedockError("Unable to login", e)
+        raise SpacedockError("Unable to login", e) from e
 
 
 def set_auth(username: str, password: str, path: StrPath) -> None:
@@ -26,4 +26,4 @@ def set_auth(username: str, password: str, path: StrPath) -> None:
         data = encrypt(f"{username}\n{password}")
         (Path(path) / SPACEDOCK_AUTH_FILE).write_text(data, encoding="utf8")
     except Exception as e:
-        raise SpacedockError("Unable to encrypt spacedock auth", e)
+        raise SpacedockError("Unable to encrypt spacedock auth", e) from e

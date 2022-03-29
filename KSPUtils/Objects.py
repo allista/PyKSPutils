@@ -41,7 +41,7 @@ class NamedObject(ValueCollection):
     @classmethod
     def Patch(cls, operator, name, spec=""):
         p = cls()
-        node = "%s%s[%s]" % (operator, cls.type, name)
+        node = f"{operator}{cls.type}[{name}]"
         if spec:
             node += spec
         p.type = node
@@ -49,7 +49,7 @@ class NamedObject(ValueCollection):
 
     @classmethod
     def PatchValue(cls, operator, name, value):
-        return ValueCollection.Value("%s%s" % (operator, name), value)
+        return ValueCollection.Value(f"{operator}{name}", value)
 
     @classmethod
     def register(cls, typename):
@@ -58,10 +58,8 @@ class NamedObject(ValueCollection):
 
     @classmethod
     def _create(cls, typename):
-        T = cls._db.get(typename)
-        if T is None:
-            T = NamedObject
-        o = T()
+        klass = cls._db.get(typename, NamedObject)
+        o = klass()
         o.type = typename
         return o
 
@@ -106,14 +104,16 @@ class NamedObject(ValueCollection):
 
     def load(self, node):
         self.values = ListDict()
-        [self.AddValueItem(v) for v in node.values]
+        for value in node.values:
+            self.AddValueItem(value)
         for n in node.subnodes:
             c = self._create(n.name)
             self.children.add(c.type, c)
             c.load(n)
 
     def save(self, node):
-        [node.AddValueItem(v) for v in self.values]
+        for value in node.values:
+            self.AddValueItem(value)
         for c in self.children:
             c.save(node.AddNode(c.type))
 

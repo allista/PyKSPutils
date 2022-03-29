@@ -66,6 +66,7 @@ class Mod(WithId, ApiObject):
     def reload(self) -> "Mod":
         return self.get(self.id)
 
+    # pylint: disable=too-many-arguments
     def update(
         self,
         version: str,
@@ -89,4 +90,6 @@ class Mod(WithId, ApiObject):
             )
             res.raise_for_status()
         except Exception as e:
-            raise SpacedockError(f"Unable to update mod {self.name} to {version}", e)
+            raise SpacedockError(
+                f"Unable to update mod {self.name} to {version}", e
+            ) from e

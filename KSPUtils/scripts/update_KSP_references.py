@@ -63,7 +63,8 @@ def replace_ksp_avc_versions(
     if not project.assembly_info.is_dirty:
         return
     click.echo(
-        f"Changing Min/Max KSP Versions in: {project.assembly_info.filepath.absolute().relative_to(cwd)}"
+        "Changing Min/Max KSP Versions in: "
+        f"{project.assembly_info.filepath.absolute().relative_to(cwd)}"
         + (" [DRY RUN]" if dry_run else "")
     )
     if dry_run:

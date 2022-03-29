@@ -90,53 +90,55 @@ class ConfigNode(ValueCollection):
         return index
 
     @staticmethod
-    def _split_by(sym, l, lines):
-        line = lines[l]
+    def _split_by(sym: str, line_num: int, lines: List[str]) -> int:
+        line = lines[line_num]
         try:
             idx = line.index(sym)
             if idx == 0 and len(line) == 1:
-                return l
+                return line_num
             if idx > 0:
-                lines.insert(l, line[:idx])
+                lines.insert(line_num, line[:idx])
                 line = line[idx:]
-                l += 1
+                line_num += 1
                 idx = 0
-                lines[l] = line
+                lines[line_num] = line
             if idx < len(line) - 1:
-                lines.insert(l + 1, line[1:])
-                lines[l] = sym
-                l = min(len(lines) - 1, l + 2)
+                lines.insert(line_num + 1, line[1:])
+                lines[line_num] = sym
+                line_num = min(len(lines) - 1, line_num + 2)
         except ValueError:
             pass
-        return l
+        return line_num
 
     def _preformat(self, lines):
-        l = len(lines)
-        while l > 0:
-            l -= 1
-            line = lines[l].strip()
+        num_lines = len(lines)
+        while num_lines > 0:
+            num_lines -= 1
+            line = lines[num_lines].strip()
             try:
                 idx = line.index("//")
                 if idx == 0:
-                    del lines[l]
+                    del lines[num_lines]
                     continue
-                elif idx > 0:
+                if idx > 0:
                     line = line[:idx]
             except ValueError:
                 pass
             line = line.strip()
             if not line:
-                del lines[l]
+                del lines[num_lines]
                 continue
-            lines[l] = line
-            l = self._split_by("}", l, lines)
-            l = self._split_by("{", l, lines)
+            lines[num_lines] = line
+            num_lines = self._split_by("}", num_lines, lines)
+            num_lines = self._split_by("{", num_lines, lines)
         return [[w.strip() for w in line.split("=")] for line in lines]
 
     def __str__(self):
-        s = "%s\n{\n" % self.name
-        v = "\n".join("    %s" % v for v in self.values)
-        n = "\n".join("    %s" % l for n in self.subnodes for l in str(n).splitlines())
-        if v and n:
-            v += "\n"
-        return "".join((s, v, n, "\n}"))
+        name = f"{self.name}\n{{\n"
+        values = "\n".join(f"    {value}" for value in self.values)
+        nodes = "\n".join(
+            f"    {line}" for node in self.subnodes for line in str(node).splitlines()
+        )
+        if values and nodes:
+            values += "\n"
+        return "".join((name, values, nodes, "\n}"))

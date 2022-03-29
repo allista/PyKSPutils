@@ -78,6 +78,7 @@ class ErrorsContext:
                 return True
         finally:
             self._blocks_stack.pop()
+        return False
 
     @property
     def optional(self) -> ErrorsContextType:

@@ -32,6 +32,7 @@ class CSharpProjectError(Exception):
     """An error during c# project info gathering"""
 
 
+# pylint: disable=too-many-instance-attributes
 class CSharpProject:
     BLOCK_MOD_CONFIG = "Mod config"
     BLOCK_ASSEMBLY_INFO = "AssemblyInfo"
@@ -95,7 +96,7 @@ class CSharpProject:
     def __str__(self) -> str:
         return "\n".join(
             (
-                f"Assembly Info:",
+                "Assembly Info:",
                 indent(
                     self.assembly_info.summary() if self.assembly_info else "None", "  "
                 ),
