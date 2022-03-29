@@ -96,7 +96,9 @@ class CSharpProject:
         return "\n".join(
             (
                 f"Assembly Info:",
-                indent(f"{self.assembly_info}", "  "),
+                indent(
+                    self.assembly_info.summary() if self.assembly_info else "None", "  "
+                ),
                 *self._secondary_versions(),
             )
         )

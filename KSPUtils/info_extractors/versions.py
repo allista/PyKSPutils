@@ -92,7 +92,7 @@ class RegexVersionBase(VersionBase, RegexExtractor):
     """
 
     _re = re.compile(
-        r"(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?"
+        r"(?P<version>(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<build>\d+)(\.(?P<revision>\d+))?)?)"
     )
 
     @classmethod
@@ -179,7 +179,7 @@ class KSPAssemblyVersion(RegexVersionBase):
     """
 
     _re = re.compile(
-        r'\[assembly: +KSPAssembly\("\w+", +(?P<major>\d+), +(?P<minor>\d+)\)]'
+        r'\[assembly: +KSPAssembly\("\w+", +(?P<version>(?P<major>\d+), +(?P<minor>\d+))\)]'
     )
 
     @classmethod
@@ -201,8 +201,8 @@ class MinKSPVersion(RegexVersionBase):
 
     _KSPVersion_pattern = (
         r"KSPVersion *= *new Version\( *"
-        r"(?P<major>\d+) *, *(?P<minor>\d+) *(, *(?P<build>\d)+"
-        r" *)?\) *;"
+        r"(?P<version>(?P<major>\d+) *, *(?P<minor>\d+) *(, *(?P<build>\d)+ *)?)"
+        r"\) *;"
     )
 
     _re = re.compile(r"\s*Min" + _KSPVersion_pattern)
