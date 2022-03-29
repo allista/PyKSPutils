@@ -301,3 +301,10 @@ class ExifVersion(FilenameVersion):
             date=mod_time,
             **kwargs,
         )
+
+
+@dataclass(frozen=True, repr=False, eq=False)
+class KspReadmeVersion(RegexVersionBase):
+    """KSP version from readme.txt file"""
+
+    _re = re.compile(f"^Version {RegexVersionBase._re.pattern}$")
