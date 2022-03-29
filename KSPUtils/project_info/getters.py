@@ -73,7 +73,9 @@ def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
     return _parse_from_paths(ExifVersion, [name], paths)
 
 
-def get_archive_version(name: str, path: StrPath, extension: str = '.zip') -> ArchiveVersion:
+def get_archive_version(
+    name: str, path: StrPath, extension: str = ".zip"
+) -> ArchiveVersion:
     """
     Searches for a file with specified extension and filename
     that matches the archive naming scheme as defined by the :class:`ArchiveVersion`,

@@ -122,7 +122,9 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 existing_assert = asset
         if existing_assert:
             if not update:
-                project.error(f'Asset already exists: {existing_assert.browser_download_url}')
+                project.error(
+                    f"Asset already exists: {existing_assert.browser_download_url}"
+                )
             click.echo(f"Removing existing asset: {existing_assert.name}")
             existing_assert.delete_asset()
         click.echo(f"Uploading asset: {project.archive_version.filepath}")

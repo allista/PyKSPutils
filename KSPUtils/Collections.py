@@ -49,7 +49,7 @@ class ListDict(object):
     def get(self, key, default=None, idx=0):
         try:
             return self._values[self._index[key][idx]]
-        except(IndexError, KeyError):
+        except (IndexError, KeyError):
             return default
 
     def get_all(self, key):
@@ -59,14 +59,15 @@ class ListDict(object):
 
 class ValueCollection(object):
     class Value(object):
-        def __init__(self, name, value, comment=''):
+        def __init__(self, name, value, comment=""):
             self.name = name
             self.value = value
             self.comment = comment
 
         def __str__(self):
-            s = '%s = %s' % (self.name, self.value)
-            if self.comment: s += ' //%s' % self.comment
+            s = "%s = %s" % (self.name, self.value)
+            if self.comment:
+                s += " //%s" % self.comment
             return s
 
     def __init__(self):
@@ -106,7 +107,8 @@ class ValueCollection(object):
 
     def SetComment(self, name, comment, idx=0):
         val = self.values.get(name, None, idx)
-        if val is not None: val.comment = comment
+        if val is not None:
+            val.comment = comment
 
     def HasValue(self, name):
         return name in self.values

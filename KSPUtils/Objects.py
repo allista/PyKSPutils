@@ -6,7 +6,7 @@ from .ConfigNode import ConfigNode
 
 class NamedObject(ValueCollection):
     _db = {}
-    type = 'None'
+    type = "None"
 
     @classmethod
     def LoadFromFile(cls, path):
@@ -14,7 +14,7 @@ class NamedObject(ValueCollection):
             yield obj
 
     @classmethod
-    def LoadFromPath(cls, path, ext='.cfg', followlinks=True):
+    def LoadFromPath(cls, path, ext=".cfg", followlinks=True):
         if os.path.isfile(path):
             for obj in cls.LoadFromFile(path):
                 yield obj
@@ -24,7 +24,8 @@ class NamedObject(ValueCollection):
             return
         for dirpath, _dirnames, filenames in os.walk(path, followlinks=followlinks):
             for filename in filenames:
-                if not filename.endswith(ext): continue
+                if not filename.endswith(ext):
+                    continue
                 for obj in cls.LoadFromFile(os.path.join(dirpath, filename)):
                     yield obj
 
@@ -38,16 +39,17 @@ class NamedObject(ValueCollection):
                     yield obj
 
     @classmethod
-    def Patch(cls, operator, name, spec=''):
+    def Patch(cls, operator, name, spec=""):
         p = cls()
-        node = '%s%s[%s]' % (operator, cls.type, name)
-        if spec: node += spec
+        node = "%s%s[%s]" % (operator, cls.type, name)
+        if spec:
+            node += spec
         p.type = node
         return p
 
     @classmethod
     def PatchValue(cls, operator, name, value):
-        return ValueCollection.Value('%s%s' % (operator, name), value)
+        return ValueCollection.Value("%s%s" % (operator, name), value)
 
     @classmethod
     def register(cls, typename):
@@ -57,7 +59,8 @@ class NamedObject(ValueCollection):
     @classmethod
     def _create(cls, typename):
         T = cls._db.get(typename)
-        if T is None: T = NamedObject
+        if T is None:
+            T = NamedObject
         o = T()
         o.type = typename
         return o
@@ -92,7 +95,7 @@ class NamedObject(ValueCollection):
             return all(n in d for n in names) if d else False
 
         setattr(cls, name, property(children))
-        setattr(cls, 'has_' + name, has_children)
+        setattr(cls, "has_" + name, has_children)
 
     def __init__(self):
         ValueCollection.__init__(self)
@@ -120,24 +123,33 @@ class NamedObject(ValueCollection):
         return str(node)
 
 
-NamedObject.mirror_value('name')
+NamedObject.mirror_value("name")
 
 
-class Part(NamedObject): pass
-Part.register('PART')
-Part.mirror_value('mass', float)
-Part.mirror_value('cost', float)
-Part.mirror_value('title')
-Part.mirror_value('description')
-Part.setup_children_dict('resources', 'RESOURCE')
-Part.setup_children_dict('modules', 'MODULE')
+class Part(NamedObject):
+    pass
 
 
-class Resource(NamedObject): pass
-Resource.register('RESOURCE')
-Resource.mirror_value('amount', float)
-Resource.mirror_value('maxAmount', float)
+Part.register("PART")
+Part.mirror_value("mass", float)
+Part.mirror_value("cost", float)
+Part.mirror_value("title")
+Part.mirror_value("description")
+Part.setup_children_dict("resources", "RESOURCE")
+Part.setup_children_dict("modules", "MODULE")
 
 
-class Module(NamedObject): pass
-Module.register('MODULE')
+class Resource(NamedObject):
+    pass
+
+
+Resource.register("RESOURCE")
+Resource.mirror_value("amount", float)
+Resource.mirror_value("maxAmount", float)
+
+
+class Module(NamedObject):
+    pass
+
+
+Module.register("MODULE")

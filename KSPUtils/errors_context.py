@@ -36,7 +36,7 @@ class ErrorsContext:
     def __init__(
         self,
         *handle_exceptions: Type[BaseException],
-        on_error: Optional[OnErrorHandler] = None
+        on_error: Optional[OnErrorHandler] = None,
     ):
         self._common_exceptions = handle_exceptions
         self._block: Optional[Block] = None

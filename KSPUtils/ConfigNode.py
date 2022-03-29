@@ -58,15 +58,15 @@ class ConfigNode(ValueCollection):
     def Load(cls, filename):
         node = cls()
         try:
-            with open(filename, encoding='utf8') as inp:
+            with open(filename, encoding="utf8") as inp:
                 node.Parse(inp.read())
         except Exception as exc:
-            print(f'Unable to parse {filename}: {exc!s}')
+            print(f"Unable to parse {filename}: {exc!s}")
         return node
 
     def Save(self, filename):
-        with open(filename, 'w', encoding='utf8') as out:
-            out.write(str(self).strip('\n\r'))
+        with open(filename, "w", encoding="utf8") as out:
+            out.write(str(self).strip("\n\r"))
 
     @classmethod
     def _parse(cls, lines, node, index=0):
@@ -76,13 +76,14 @@ class ConfigNode(ValueCollection):
             if len(line) == 2:
                 node.AddValue(*line)
                 index += 1
-            elif line[0] == '{':
+            elif line[0] == "{":
                 subnode = node.AddNode("")
                 index = cls._parse(lines, subnode, index + 1)
             else:
-                if line[0] == '}': return index + 1
-                if index < nlines - 1 and lines[index + 1][0] == '{':
-                    subnode = node.AddNode(line[0].strip(' \t\xef\xbb\xbf\ufeff'))
+                if line[0] == "}":
+                    return index + 1
+                if index < nlines - 1 and lines[index + 1][0] == "{":
+                    subnode = node.AddNode(line[0].strip(" \t\xef\xbb\xbf\ufeff"))
                     index = cls._parse(lines, subnode, index + 2)
                 else:
                     index += 1
@@ -93,7 +94,8 @@ class ConfigNode(ValueCollection):
         line = lines[l]
         try:
             idx = line.index(sym)
-            if idx == 0 and len(line) == 1: return l
+            if idx == 0 and len(line) == 1:
+                return l
             if idx > 0:
                 lines.insert(l, line[:idx])
                 line = line[idx:]
@@ -114,7 +116,7 @@ class ConfigNode(ValueCollection):
             l -= 1
             line = lines[l].strip()
             try:
-                idx = line.index('//')
+                idx = line.index("//")
                 if idx == 0:
                     del lines[l]
                     continue
@@ -127,14 +129,14 @@ class ConfigNode(ValueCollection):
                 del lines[l]
                 continue
             lines[l] = line
-            l = self._split_by('}', l, lines)
-            l = self._split_by('{', l, lines)
-        return [[w.strip() for w in line.split('=')] for line in lines]
+            l = self._split_by("}", l, lines)
+            l = self._split_by("{", l, lines)
+        return [[w.strip() for w in line.split("=")] for line in lines]
 
     def __str__(self):
-        s = '%s\n{\n' % self.name
-        v = '\n'.join('    %s' % v for v in self.values)
-        n = '\n'.join('    %s' % l for n in self.subnodes
-                      for l in str(n).splitlines())
-        if v and n: v += '\n'
-        return ''.join((s, v, n, '\n}'))
+        s = "%s\n{\n" % self.name
+        v = "\n".join("    %s" % v for v in self.values)
+        n = "\n".join("    %s" % l for n in self.subnodes for l in str(n).splitlines())
+        if v and n:
+            v += "\n"
+        return "".join((s, v, n, "\n}"))
