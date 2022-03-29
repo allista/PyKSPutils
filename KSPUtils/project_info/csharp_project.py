@@ -172,7 +172,9 @@ class CSharpProject:
         if not self.mod_config.dll_path:
             return False
         with self.context(self.BLOCK_MOD_CONFIG).optional:
-            self.dll_version = ExifVersion.from_file(self.mod_config.dll_path)
+            self.dll_version = ExifVersion.from_file(
+                self.path / self.mod_config.dll_path
+            )
         return bool(self.dll_version)
 
     def update_archive_version(self) -> bool:
@@ -180,7 +182,7 @@ class CSharpProject:
             return False
         with self.context(self.BLOCK_ARCHIVE).optional:
             self.archive_version = get_archive_version(
-                self.assembly_title, self.mod_config.archive_path
+                self.assembly_title, self.path / self.mod_config.archive_path
             )
         return bool(self.archive_version)
 
