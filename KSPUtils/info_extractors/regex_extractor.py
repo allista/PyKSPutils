@@ -14,6 +14,10 @@ class RegexExtractor(FileExtractor):
     _re: ClassVar[Pattern] = re.compile("")
 
     @classmethod
+    def pattern(cls):
+        return cls._re.pattern
+
+    @classmethod
     def _find_first(cls, regex: Pattern, text: str) -> Optional[Match]:
         return next(regex.finditer(text), None)
 
