@@ -1,11 +1,12 @@
 import re
 from dataclasses import dataclass
 from re import Match
-from typing import Any, ClassVar, Dict, Optional, Pattern, Type, TypeVar
+from typing import Any, ClassVar, Dict, Optional, Pattern, Type, TypeVar, Union
 
 from KSPUtils.info_extractors.file_extractor import FileExtractor, StrPath
 
 RegexExtractorType = TypeVar("RegexExtractorType", bound="RegexExtractor")
+GroupType = Union[str, int]
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,16 @@ class RegexExtractor(FileExtractor):
     def _extract(cls: Type[RegexExtractorType], match: Match) -> Dict[str, Any]:
         """Extract init kwargs for the Extractor instance from a Match"""
         raise NotImplementedError()
+
+    @classmethod
+    def replace(cls, text: str, replacement: str, group: GroupType = 0) -> str:
+        match = cls._find_info(text)
+        if not match:
+            return text
+        orig = match.group(group)
+        if not orig:
+            return text
+        return text.replace(orig, replacement)
 
     @classmethod
     def from_str(
