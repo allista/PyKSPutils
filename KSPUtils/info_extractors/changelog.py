@@ -1,3 +1,5 @@
+from datetime import datetime
+from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List, Optional, Type
 
@@ -22,9 +24,12 @@ class ChangeLog(FileExtractor):
 
     def __init__(
         self,
+        filepath: Path,
+        date: datetime = datetime.now(),
         header: str = "",
         entries: Optional[ChangeLogEntries] = None,
     ):
+        super().__init__(filepath, date)
         self.header = header
         self._entries = entries or {}
         self._order: List[VersionBase] = sorted(entries, reverse=True)
@@ -74,4 +79,4 @@ class ChangeLog(FileExtractor):
                     entry = []
                 else:
                     entry.append(line)
-        return cls(header, entries)
+        return cls(filepath, mod_time, header, entries)
