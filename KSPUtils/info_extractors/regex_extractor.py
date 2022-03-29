@@ -62,3 +62,24 @@ class RegexExtractor(FileExtractor):
         """
         text, mod_time = cls._read_path(filename)
         return cls.from_str(text, date=mod_time, **kwargs)
+
+    @classmethod
+    def from_file_lines(
+        cls: Type[RegexExtractorType], filename: StrPath, **kwargs: Any
+    ) -> Optional[RegexExtractorType]:
+        """
+        Creates RegexExtractor from a text file,
+        reading line by line until the match is found.
+
+        Useful for large files, or for files with incorrectly encoded data.
+        """
+        filepath, mod_time = cls._resolve_path(filename)
+        with filepath.open("rb") as inp:
+            for line in inp:
+                try:
+                    res = cls.from_str(line.decode("utf8"), date=mod_time, **kwargs)
+                    if res:
+                        return res
+                except UnicodeDecodeError:
+                    continue
+        return None
