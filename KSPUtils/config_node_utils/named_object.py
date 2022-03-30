@@ -1,8 +1,8 @@
 import os
 from typing import Any, Callable, Dict, Generator, Optional, Type, TypeVar
 
-from .Collections import ListDict, ValueCollection
-from .ConfigNode import ConfigNode
+from KSPUtils.config_node_utils import ConfigNode, ValueCollection
+from KSPUtils.config_node_utils.list_dict import ListDict
 
 NamedObjectType = TypeVar("NamedObjectType", bound="NamedObject")
 
@@ -109,7 +109,7 @@ class NamedObject(ValueCollection):
 
     def __init__(self):
         ValueCollection.__init__(self)
-        self.children = ListDict()
+        self.children: ListDict[NamedObject] = ListDict()
 
     def AddChild(self: NamedObjectType, obj: NamedObjectType) -> None:
         self.children.add(obj.type, obj)
@@ -133,35 +133,3 @@ class NamedObject(ValueCollection):
         node = ConfigNode(self.type)
         self.save(node)
         return str(node)
-
-
-NamedObject.mirror_value("name")
-
-
-class Part(NamedObject):
-    pass
-
-
-Part.register("PART")
-Part.mirror_value("mass", float)
-Part.mirror_value("cost", float)
-Part.mirror_value("title")
-Part.mirror_value("description")
-Part.setup_children_dict("resources", "RESOURCE")
-Part.setup_children_dict("modules", "MODULE")
-
-
-class Resource(NamedObject):
-    pass
-
-
-Resource.register("RESOURCE")
-Resource.mirror_value("amount", float)
-Resource.mirror_value("maxAmount", float)
-
-
-class Module(NamedObject):
-    pass
-
-
-Module.register("MODULE")

@@ -1,7 +1,8 @@
 from copy import deepcopy
 from typing import List, Optional, Union
 
-from .Collections import ValueCollection, ListDict
+from KSPUtils.config_node_utils.value_collection import ValueCollection
+from KSPUtils.config_node_utils.list_dict import ListDict
 
 
 class ConfigNode(ValueCollection):
