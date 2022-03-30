@@ -133,6 +133,12 @@ class CSharpProject:
         return self.change_log.latest_version if self.change_log else None
 
     @property
+    def game_data_path(self) -> Optional[Path]:
+        if self.mod_config.game_data_path:
+            return self.path / self.mod_config.game_data_path
+        return None
+
+    @property
     def archives_path(self) -> Optional[Path]:
         if self.mod_config.archive_path:
             return self.path / self.mod_config.archive_path

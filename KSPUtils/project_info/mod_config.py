@@ -12,8 +12,13 @@ MOD_CONFIG_FILENAME = "modconfig.yaml"
 class ModConfig(YamlExtractor):
     change_log: str = "ChangeLog.md"
     search_paths: List[str] = field(default_factory=list)
+
     dll_path: Optional[str] = None
     archive_path: Optional[str] = None
+    game_data_path: Optional[str] = None
+    additional_data_paths: List[str] = field(default_factory=list)
+    exclude_patterns: List[str] = field(default_factory=list)
+
     github_url: Optional[str] = None
     spacedock_mod_id: Optional[int] = None
 
