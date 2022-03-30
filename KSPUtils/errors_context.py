@@ -122,5 +122,8 @@ class ErrorsContext:
     def exit_code(self) -> int:
         return 1 if self.failed else 0
 
+    def reset(self) -> None:
+        self._errors.clear()
+
     def __int__(self):
         return self.exit_code
