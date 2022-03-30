@@ -132,6 +132,12 @@ class CSharpProject:
     def change_log_version(self) -> Optional[VersionBase]:
         return self.change_log.latest_version if self.change_log else None
 
+    @property
+    def archives_path(self) -> Optional[Path]:
+        if self.mod_config.archive_path:
+            return self.path / self.mod_config.archive_path
+        return None
+
     def versions_match(
         self, *, change_log=True, git_tag=True, dll=True, archive=True
     ) -> bool:
