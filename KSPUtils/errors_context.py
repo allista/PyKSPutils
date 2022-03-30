@@ -13,7 +13,7 @@ class ErrorsContextError(Exception):
 @dataclass
 class Block:
     name: str
-    exceptions: Tuple[Type[BaseException]]
+    exceptions: Tuple[Type[BaseException], ...]
     optional: bool = False
 
 
@@ -45,7 +45,7 @@ class ErrorsContext:
         self.on_error: Optional[OnErrorHandler] = on_error
 
     def __call__(
-        self, block: str, *handle_exceptions: Type[BaseException]
+        self: ErrorsContextType, block: str, *handle_exceptions: Type[BaseException]
     ) -> ErrorsContextType:
         """
         Sets active block name
@@ -57,7 +57,7 @@ class ErrorsContext:
         self._block = Block(block, handle_exceptions)
         return self
 
-    def __enter__(self) -> ErrorsContextType:
+    def __enter__(self: ErrorsContextType) -> ErrorsContextType:
         if self._block is None:
             raise ErrorsContextError(
                 "Active block is not set, cannot enter the context"
@@ -81,7 +81,7 @@ class ErrorsContext:
         return False
 
     @property
-    def optional(self) -> ErrorsContextType:
+    def optional(self: ErrorsContextType) -> ErrorsContextType:
         if self._block is None:
             raise ErrorsContextError("Active block is not set")
         self._block.optional = True

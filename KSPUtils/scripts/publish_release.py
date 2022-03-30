@@ -69,10 +69,13 @@ def upload_to_github(project: CSharpProject, update) -> None:
     if not project.mod_config.github_url or not project.mod_config.archive_path:
         sys.exit(0)
     project.update_github()
+    if not project.github:
+        return
     with project.context(project.BLOCK_GITHUB, github.GithubException):
         # see if locally everything matches
-        if not project.versions_match():
+        if not project.versions_match() or not project.git_tag_version:
             project.error(f"Versions do not match\n{project.versions_info()}")
+            return
         repo = project.github.get_repo(project.mod_config.github_url)
         # check if the tag for the release exists on the remote
         published_tag: Optional[Tag] = None
@@ -86,11 +89,12 @@ def upload_to_github(project: CSharpProject, update) -> None:
                         f"Local:  {project.git_tag_version.commit_sha}\n"
                         f"Remote: {tag.commit.sha}"
                     )
-                else:
-                    published_tag = tag
-                    break
+                    return
+                published_tag = tag
+                break
         if not published_tag:
             project.error(f"Git tag is not published: {project.git_tag_version!r}")
+            return
         # check if we already have the release for this tag
         try:
             release = repo.get_release(published_tag.name)
@@ -98,18 +102,24 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 project.error(
                     f"Release already exists: {release.title} at {release.html_url}"
                 )
+                return
         except github.UnknownObjectException:
             pass
         # get the change log entry for the release body
-        change_log = project.change_log[project.assembly_version]
+        change_log = (
+            project.change_log[project.assembly_version] if project.change_log else None
+        )
         if not change_log:
             project.error(
                 f"Unable to get change log entry for: {project.assembly_version}"
             )
+            return
         # create or update the release
         if not release:
-            click.echo(f"Creating new release: {tag.name}")
-            release = repo.create_git_release(tag.name, tag.name, change_log)
+            click.echo(f"Creating new release: {published_tag.name}")
+            release = repo.create_git_release(
+                published_tag.name, published_tag.name, change_log
+            )
         else:
             click.echo(f"Updating the release: {release.title}")
             if release.body != change_log:
@@ -117,6 +127,8 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 release.update_release(release.title, change_log)
         # check if the asset already exists
         existing_assert: Optional[GitReleaseAsset] = None
+        if not project.archive_version:
+            return
         for asset in release.get_assets():
             if asset.name == project.archive_version.filename:
                 existing_assert = asset
@@ -125,6 +137,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 project.error(
                     f"Asset already exists: {existing_assert.browser_download_url}"
                 )
+                return
             click.echo(f"Removing existing asset: {existing_assert.name}")
             existing_assert.delete_asset()
         click.echo(f"Uploading asset: {project.archive_version.filepath}")
@@ -173,24 +186,29 @@ def set_auth(project: CSharpProject, username, password) -> None:
 def upload_to_spacedock(
     project: CSharpProject,
 ) -> None:
-    if (
-        not project.mod_config.spacedock_mod_id
-        or not project.mod_config.archive_path
-        or project.mod_config.spacedock_mod_id is None
-    ):
+    if not project.mod_config.spacedock_mod_id or not project.mod_config.archive_path:
         sys.exit(0)
     with project.context(project.BLOCK_SPACEDOCK, SpacedockError):
         # see if locally everything matches
         if not project.versions_match():
             project.error(f"Versions do not match\n{project.versions_info()}")
+            return
+        if (
+            not project.assembly_info
+            or not project.assembly_version
+            or not project.archive_version
+        ):
+            return
         if not project.assembly_info.max_ksp_version:
             project.error("No MAX KSP Version found in AssemblyInfo")
+            return
         # get mod info from spacedock
         user = spacedock.login(".")
         mod_id = project.mod_config.spacedock_mod_id
         mod = user.get_mod(mod_id, reload=True)
         if not mod:
             project.error(f"Mod {mod_id} does not belong to {user.username}")
+            return
         # check if we already have the release for this version
         published_version = mod.get_version(project.assembly_version)
         if published_version:
@@ -198,12 +216,16 @@ def upload_to_spacedock(
                 f"Release already exists: {published_version.friendly_version} "
                 f"at {published_version.download_url}"
             )
+            return
         # get the change log entry for the release body
-        change_log = project.change_log[project.assembly_version]
+        change_log = (
+            project.change_log[project.assembly_version] if project.change_log else None
+        )
         if not change_log:
             project.error(
                 f"Unable to get change log entry for: {project.assembly_version}"
             )
+            return
         # update the mod and reload its info
         mod.update(
             project.assembly_version.as_str_without_prefix,
@@ -211,14 +233,14 @@ def upload_to_spacedock(
             project.assembly_info.max_ksp_version.as_str_without_prefix,
             project.archive_version.filepath,
         )
+        click.echo(f"Successfully published release {project.assembly_version}")
         try:
             mod = mod.reload()
             new_version = mod.get_version(project.assembly_version)
-            click.echo(
-                f"Successfully published release: {new_version.friendly_version} at {new_version.download_url}"
-            )
+            if new_version:
+                click.echo(f"Download URL: {new_version.download_url}")
+            else:
+                click.echo("WARNING: new version not found!", err=True)
         except SpacedockError as e:
-            click.echo(
-                f"Successfully published release {project.assembly_version} but could not reload mod info: {e}"
-            )
+            click.echo(f"But could not reload mod info: {e}", err=True)
     sys_exit(project)

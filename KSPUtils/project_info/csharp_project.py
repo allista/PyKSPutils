@@ -14,9 +14,9 @@ from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import (
     ArchiveVersion,
     AssemblyVersion,
-    ChangeLogVersion,
     ExifVersion,
     TagVersion,
+    VersionBase,
 )
 from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
@@ -49,9 +49,9 @@ class CSharpProject:
         errors_context: Optional[ErrorsContext] = None,
     ) -> None:
         self.path = Path(path)
-        self.search_paths = []
+        self.search_paths: List[Path] = []
         self.context = errors_context or ErrorsContext(FileNotFoundError)
-        self.mod_config: Optional[ModConfig] = None
+        self.mod_config = ModConfig()
         self.assembly_info: Optional[AssemblyInfo] = None
         self.change_log: Optional[ChangeLog] = None
         self.dll_version: Optional[ExifVersion] = None
@@ -129,7 +129,7 @@ class CSharpProject:
         return self.mod_config.change_log
 
     @property
-    def change_log_version(self) -> Optional[ChangeLogVersion]:
+    def change_log_version(self) -> Optional[VersionBase]:
         return self.change_log.latest_version if self.change_log else None
 
     def versions_match(

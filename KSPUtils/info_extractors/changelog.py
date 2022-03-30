@@ -31,7 +31,9 @@ class ChangeLog(FileSaverMixin, FileExtractor):
         super().__init__(filepath)
         self.header = header
         self._entries = entries or {}
-        self._order: List[VersionBase] = sorted(entries, reverse=True)
+        self._order: List[VersionBase] = (
+            sorted(entries, reverse=True) if entries else []
+        )
 
     def __str__(self):
         res = [self.header] if self.header else []
@@ -39,8 +41,8 @@ class ChangeLog(FileSaverMixin, FileExtractor):
             res += [f"## {version}", self._entries[version]]
         return "\n\n".join(res)
 
-    def __getitem__(self, v: VersionBase) -> Optional[str]:
-        return self._entries.get(v)
+    def __getitem__(self, v: Optional[VersionBase]) -> Optional[str]:
+        return self._entries.get(v) if v is not None else None
 
     def __setitem__(self, v: VersionBase, entry) -> None:
         if v not in self._entries:
@@ -50,7 +52,7 @@ class ChangeLog(FileSaverMixin, FileExtractor):
         self._dirty = True
 
     @property
-    def latest_version(self) -> Optional[ChangeLogVersion]:
+    def latest_version(self) -> Optional[VersionBase]:
         return next(iter(self._order), None)
 
     @property

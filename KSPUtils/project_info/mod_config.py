@@ -20,6 +20,8 @@ class ModConfig(YamlExtractor):
     @classmethod
     def default(cls, path: StrPath, **kwargs: Any) -> "ModConfig":
         try:
-            return cls.from_file(Path(path) / MOD_CONFIG_FILENAME, **kwargs)
+            return cls.from_file(Path(path) / MOD_CONFIG_FILENAME, **kwargs) or cls(
+                **kwargs
+            )
         except FileNotFoundError:
             return cls(**kwargs)

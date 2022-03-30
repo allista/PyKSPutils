@@ -4,6 +4,7 @@ from typing import Dict, Optional
 import jsonobject as jo
 import requests
 
+from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import VersionBase
 from KSPUtils.spacedock import SpacedockError
 from KSPUtils.spacedock.api_object import ApiObject
@@ -53,9 +54,9 @@ class Mod(WithId, ApiObject):
         except KeyError:
             return None
 
-    def get_version(self, version: VersionBase) -> Optional[ModVersion]:
+    def get_version(self, version: Optional[VersionBase]) -> Optional[ModVersion]:
         try:
-            return self.versions[self._version_by_fv[version]]
+            return self.versions[self._version_by_fv[version]] if version else None
         except KeyError:
             return None
 
@@ -72,12 +73,13 @@ class Mod(WithId, ApiObject):
         version: str,
         changelog: str,
         game_version: str,
-        zipball: Path,
+        zipball: StrPath,
         notify_followers=True,
     ) -> None:
         if not self._COOKIES:
             raise SpacedockError("Updating requires authentication")
         try:
+            zipball = Path(zipball)
             res = requests.post(
                 f"{self._url(id=self.id)}/update",
                 files=(

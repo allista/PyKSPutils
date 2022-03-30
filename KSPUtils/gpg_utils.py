@@ -1,7 +1,6 @@
-from typing import Union
+from typing import BinaryIO, Union
 
 import gnupg
-from typing.io import BinaryIO
 
 from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.path_utils import search_upward

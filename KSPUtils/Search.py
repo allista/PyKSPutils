@@ -1,6 +1,7 @@
 import re
 from collections import Counter
 from itertools import chain
+from typing import List, Optional, Pattern, Union
 
 from .Objects import NamedObject
 
@@ -13,16 +14,12 @@ class _AbstractTerm:
     def _match_object(self, _obj: NamedObject) -> bool:
         """
         Returns True if the object matches the term positively, False otherwise.
-        :type obj: NamedObject
-        :rtype: bool
         """
         return True
 
-    def match(self, obj):
+    def match(self, obj: NamedObject) -> bool:
         """
         Returns True if the object matches the term, False otherwise.
-        :type obj: NamedObject
-        :rtype: bool
         """
         m = self._match_object(obj)
         return not m if self.negative else m
@@ -42,7 +39,9 @@ class Term(list, _AbstractTerm):
             if len(node_name) > 2:
                 raise ValueError("Incorrect node term format. Should be Node[:name].")
             self.node = re.compile(node_name[0])
-            self.name = None if len(node_name) < 2 else re.compile(node_name[1])
+            self.name: Optional[Pattern] = (
+                None if len(node_name) < 2 else re.compile(node_name[1])
+            )
 
         def __bool__(self):
             return self._nonzero
@@ -59,34 +58,27 @@ class Term(list, _AbstractTerm):
         def __repr__(self):
             return str(self)
 
-        def match(self, obj):
+        def match(self, obj: NamedObject) -> bool:
             """
             Returns True if the object matches the NodeTerm, False otherwise.
-            :type obj: NamedObject
-            :rtype: bool
             """
             if not self:
                 return True
-            return self.node.match(obj.type) and (
-                self.name is None or self.name.match(obj.name)
+            return self.node.match(obj.type) is not None and (
+                self.name is None
+                or self.name.match(obj.name) is not None  # type: ignore[attr-defined]
             )
 
-        def match_as_value(self, obj):
+        def match_as_value(self, obj: NamedObject) -> bool:
             """
             Returns True if one of the object's value matches the NodeTerm, False otherwise.
-            :type obj: NamedObject
-            :rtype: bool
             """
             if not self:
                 return True
-            return (
-                any(self.node.match(v.name) for v in obj.values)
-                if self.name is None
-                else any(
-                    self.name.match(v.value)
-                    for v in obj.values
-                    if self.node.match(v.name)
-                )
+            if self.name is None:
+                return any(self.node.match(v.name) for v in obj.values)
+            return any(
+                self.name.match(v.value) for v in obj.values if self.node.match(v.name)
             )
 
         def match_value(self, val):
@@ -101,9 +93,9 @@ class Term(list, _AbstractTerm):
                 return self.node.match(val.name)
             return self.node.match(val.name) and self.name.match(val.value)
 
-    def __init__(self, string):
+    def __init__(self, string: str) -> None:
         """
-        :param string str: NODE:name1/SUBNODE:name2/SUBSUBNODE:name3/ValueName:value
+        :param string: NODE:name1/SUBNODE:name2/SUBSUBNODE:name3/ValueName:value
         """
         _AbstractTerm.__init__(self)
         self.negative = string.startswith("^")
@@ -116,12 +108,9 @@ class Term(list, _AbstractTerm):
         return str(self)
 
     @classmethod
-    def _match_path(cls, obj, path):
+    def _match_path(cls, obj: NamedObject, path: List[Node]) -> bool:
         """
         Returns True if the object matches the path, False otherwise.
-        :type obj: NamedObject
-        :type path: list
-        :rtype: bool
         """
         if len(path) == 1:
             return path[0].match_as_value(obj)
@@ -132,13 +121,12 @@ class Term(list, _AbstractTerm):
             return cls._match_path(obj, subpath)
         return any(cls._match_path(child, subpath) for child in obj.children)
 
+    SelectResult = List[Union[NamedObject, NamedObject.Value]]
+
     @classmethod
-    def _select_by_path(cls, obj, path):
+    def _select_by_path(cls, obj: NamedObject, path: List[Node]) -> SelectResult:
         """
         Returns objects that match the path, None otherwise.
-        :type obj: NamedObject
-        :type path: list
-        :rtype: list of NamedObjects
         """
         if len(path) == 1:
             node = path[0]
@@ -160,10 +148,10 @@ class Term(list, _AbstractTerm):
             )
         )
 
-    def _match_object(self, obj):
+    def _match_object(self, obj: NamedObject) -> bool:
         return self._match_path(obj, self)
 
-    def select(self, obj):
+    def select(self, obj: NamedObject) -> SelectResult:
         return self._select_by_path(obj, self)
 
     @classmethod
@@ -231,13 +219,13 @@ class Query(_AbstractTerm):
     OPS = (AND, OR)
     op_re = re.compile(r"(\|\||&&)")
 
-    class _tree(list):
+    class _Tree(list):
         def __init__(self, parent=None):
             super().__init__()
             self.parent = parent
 
         def subtree(self):
-            tree = Query._tree(self)
+            tree = self.__class__(self)
             self.append(tree)
             return tree
 
@@ -248,7 +236,7 @@ class Query(_AbstractTerm):
 
     @classmethod
     def _expand2tree(cls, string):
-        tree = cls._tree()
+        tree = cls._Tree()
         cur = tree
         buf = []
 
@@ -273,7 +261,7 @@ class Query(_AbstractTerm):
             else:
                 buf.append(letter)
         flush(buf)
-        while len(tree) == 1 and isinstance(tree[0], Query._tree):
+        while len(tree) == 1 and isinstance(tree[0], Query._Tree):
             tree = tree[0]
             tree.parent = None
         return tree
@@ -296,7 +284,7 @@ class Query(_AbstractTerm):
         for leaf in tree:
             if leaf in cls.OPS:
                 last_op = leaf
-            elif isinstance(leaf, Query._tree):
+            elif isinstance(leaf, Query._Tree):
                 add(cls._tree2query(leaf, root_node).root)
                 last_op = None
             else:

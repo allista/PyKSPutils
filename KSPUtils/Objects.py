@@ -1,20 +1,27 @@
 import os
+from typing import Any, Callable, Dict, Generator, Optional, Type, TypeVar
 
-from .Collections import ValueCollection, ListDict
+from .Collections import ListDict, ValueCollection
 from .ConfigNode import ConfigNode
+
+NamedObjectType = TypeVar("NamedObjectType", bound="NamedObject")
 
 
 class NamedObject(ValueCollection):
-    _db = {}
+    _db: Dict[str, Type["NamedObject"]] = {}
     type = "None"
 
     @classmethod
-    def LoadFromFile(cls, path):
+    def LoadFromFile(
+        cls: Type[NamedObjectType], path: str
+    ) -> Generator[NamedObjectType, None, None]:
         for obj in cls.LoadFromNode(ConfigNode.Load(path)):
             yield obj
 
     @classmethod
-    def LoadFromPath(cls, path, ext=".cfg", followlinks=True):
+    def LoadFromPath(
+        cls: Type[NamedObjectType], path: str, ext=".cfg", followlinks=True
+    ) -> Generator[Optional[NamedObjectType], None, None]:
         if os.path.isfile(path):
             for obj in cls.LoadFromFile(path):
                 yield obj
@@ -30,7 +37,9 @@ class NamedObject(ValueCollection):
                     yield obj
 
     @classmethod
-    def LoadFromNode(cls, node):
+    def LoadFromNode(
+        cls: Type[NamedObjectType], node: ConfigNode
+    ) -> Generator[NamedObjectType, None, None]:
         if node.name == cls.type:
             yield cls.from_node(node)
         elif node.subnodes:
@@ -39,7 +48,7 @@ class NamedObject(ValueCollection):
                     yield obj
 
     @classmethod
-    def Patch(cls, operator, name, spec=""):
+    def Patch(cls: Type[NamedObjectType], operator, name, spec=""):
         p = cls()
         node = f"{operator}{cls.type}[{name}]"
         if spec:
@@ -48,38 +57,41 @@ class NamedObject(ValueCollection):
         return p
 
     @classmethod
-    def PatchValue(cls, operator, name, value):
+    def PatchValue(cls: Type[NamedObjectType], operator, name, value):
         return ValueCollection.Value(f"{operator}{name}", value)
 
     @classmethod
-    def register(cls, typename):
+    def register(cls: Type[NamedObjectType], typename: str) -> None:
         NamedObject._db[typename] = cls
         cls.type = typename
 
     @classmethod
-    def _create(cls, typename):
+    def _create(cls: Type[NamedObjectType], typename):
         klass = cls._db.get(typename, NamedObject)
         o = klass()
         o.type = typename
         return o
 
     @classmethod
-    def from_node(cls, node):
-        o = cls()
-        o.type = node.name
-        o.load(node)
-        return o
+    def from_node(cls: Type[NamedObjectType], node: ConfigNode) -> NamedObjectType:
+        obj: NamedObjectType = cls()
+        obj.type = node.name
+        obj.load(node)
+        return obj
+
+    _T = TypeVar("_T")
+    ConverterType = Callable[[Any], _T]
 
     @classmethod
-    def mirror_value(cls, name, T=str):
-        def getter(self):
+    def mirror_value(cls, name: str, convert: ConverterType = str) -> None:
+        def getter(self: NamedObject) -> Optional[NamedObject._T]:
             try:
-                return T(self.GetValue(name))
-            except:
+                return convert(self.GetValue(name))
+            except Exception:
                 return None
 
-        def setter(self, val):
-            self.SetValue(name, T(val))
+        def setter(self: NamedObject, val: Any) -> None:
+            self.SetValue(name, val)
 
         setattr(cls, name, property(getter, setter))
 
@@ -99,10 +111,10 @@ class NamedObject(ValueCollection):
         ValueCollection.__init__(self)
         self.children = ListDict()
 
-    def AddChild(self, obj):
+    def AddChild(self: NamedObjectType, obj: NamedObjectType) -> None:
         self.children.add(obj.type, obj)
 
-    def load(self, node):
+    def load(self, node: ConfigNode) -> None:
         self.values = ListDict()
         for value in node.values:
             self.AddValueItem(value)

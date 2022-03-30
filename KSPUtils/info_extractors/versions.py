@@ -243,7 +243,7 @@ class FilenameVersion(SimpleVersion):
         cls: Type[RegexExtractorType],
         filename: StrPath,
         **kwargs: Any,
-    ) -> RegexExtractorType:
+    ) -> Optional[RegexExtractorType]:
         """
         Creates Version from file name
         """

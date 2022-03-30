@@ -24,7 +24,7 @@ class AssemblyInfo(FileSaverMixin, FileExtractor):
         super().__init__(filepath)
         self.date = date
         self._content = [line.rstrip("\n\r") for line in content]
-        self._line_by_entity_id: Dict[RegexExtractorType, int] = {}
+        self._line_by_entity_id: Dict[int, int] = {}
         self.title = self._extract_from_content(AssemblyTitle)
         self.assembly_version = self._extract_from_content(AssemblyVersion, date=date)
         self.ksp_assembly_version = self._extract_from_content(

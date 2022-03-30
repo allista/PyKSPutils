@@ -14,7 +14,7 @@ _assembly_info = Path("AssemblyInfo.cs")
 
 def _parse_from_paths(
     cls: Type[FileExtractorType], names: Collection[StrPath], paths: Collection[StrPath]
-) -> FileExtractorType:
+) -> Optional[FileExtractorType]:
     for p in paths:
         for name in names:
             path = Path(p) / name
@@ -27,7 +27,7 @@ def _parse_from_paths(
     )
 
 
-def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
+def get_assembly_info(*paths: StrPath) -> Optional[AssemblyInfo]:
     """
     Returns AssemblyVersion from AssemblyInfo.cs file
 
@@ -40,7 +40,7 @@ def get_assembly_info(*paths: StrPath) -> AssemblyInfo:
     )
 
 
-def get_changelog(name: str, *paths: StrPath) -> ChangeLog:
+def get_changelog(name: str, *paths: StrPath) -> Optional[ChangeLog]:
     """
     Reads a text file from path and parses it as a ChangeLog
 
@@ -52,7 +52,7 @@ def get_changelog(name: str, *paths: StrPath) -> ChangeLog:
     return _parse_from_paths(ChangeLog, [name], paths)
 
 
-def get_git_tag_version(tag: Tag) -> TagVersion:
+def get_git_tag_version(tag: Tag) -> Optional[TagVersion]:
     """
     Creates TagVersion from a git Tag
     """
@@ -61,7 +61,7 @@ def get_git_tag_version(tag: Tag) -> TagVersion:
     )
 
 
-def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
+def get_dll_version(name: str, *paths: StrPath) -> Optional[ExifVersion]:
     """
     Creates ExifVersion from an assembly .dll
 
@@ -75,7 +75,7 @@ def get_dll_version(name: str, *paths: StrPath) -> ExifVersion:
 
 def get_archive_version(
     name: str, path: StrPath, extension: str = ".zip"
-) -> ArchiveVersion:
+) -> Optional[ArchiveVersion]:
     """
     Searches for a file with specified extension and filename
     that matches the archive naming scheme as defined by the :class:`ArchiveVersion`,

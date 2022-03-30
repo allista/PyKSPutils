@@ -37,8 +37,11 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
         - the latest existing git tag with a version should not be on HEAD commit
     """
     with project.context(project.BLOCK_GIT):
+        if not project.repo:
+            return
         if project.repo.active_branch.name != require_branch:
             project.error(f"Not on the '{require_branch}' branch")
+            return
     with project.context(project.BLOCK_GIT_TAG):
         if project.latest_tag:
             if not project.git_tag_version:
@@ -51,13 +54,18 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
                     project.error(
                         f"The latest git tag {project.latest_tag.name} is on the HEAD"
                     )
+                    return
     with project.context("Assembly vs ChangeLog"):
-        if project.assembly_version > project.change_log_version:
+        if (
+            project.assembly_version
+            and project.assembly_version > project.change_log_version
+        ):
             project.error(
                 f"Assembly version {project.assembly_version} is greater "
                 f"than the ChangeLog version {project.change_log_version}\n"
                 f"Fill in the changelog entry for {project.assembly_version}",
             )
+            return
     with project.context("Git tag version"):
         if project.git_tag_version:
             if project.git_tag_version > project.assembly_version:
@@ -66,12 +74,14 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
                     f"than the git tag version {project.git_tag_version}.\n"
                     f"Did you forget to update AssemblyInfo and ChangeLog?",
                 )
+                return
             if project.git_tag_version == project.assembly_version:
                 project.error(
                     f"Assembly version {project.assembly_version} "
                     "is equal to the latest git tag version.\n"
                     "You have to investigate and remove the tag manually.",
                 )
+                return
     if not project.context.failed:
         click.echo(
             f"Creating new lightweight tag at the HEAD of the '{require_branch}' branch:\n"
@@ -97,13 +107,17 @@ def remove_tag(project: CSharpProject) -> None:
     \b
         - the git tag with this version should be the latest tag
     """
+    if not project.repo:
+        return
     with project.context(project.BLOCK_GIT_TAG):
         if not project.latest_tag:
             project.error("No tag found")
+            return
         if not project.git_tag_version:
             project.error(
                 f"Unable to parse latest git tag: {project.latest_tag.name}",
             )
+            return
     with project.context("Assembly vs Git tag"):
         if project.assembly_version != project.git_tag_version:
             project.error(
@@ -111,7 +125,7 @@ def remove_tag(project: CSharpProject) -> None:
                 f"Assembly: {project.assembly_version!r}\n"
                 f"Git tag:  {project.git_tag_version!r}"
             )
-
+            return
     if not project.context.failed:
         with project.context("Remove git tag"):
             click.echo(f"Removing the tag: {project.git_tag_version!r}")

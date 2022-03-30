@@ -94,7 +94,7 @@ def for_release(project: CSharpProject, require_branch: str) -> None:
     with project.context(project.BLOCK_GIT_TAG):
         if project.latest_tag is None:
             project.error(f"No tags in the repo at {project.path}")
-        else:
+        elif project.repo:
             if project.latest_tag.commit != project.repo.head.commit:
                 project.error(
                     f"Latest tag {project.latest_tag.name} is not on the HEAD commit"
@@ -123,7 +123,7 @@ def check_archive(project: CSharpProject) -> None:
     with project.context(project.BLOCK_ARCHIVE):
         if not project.archive_version:
             project.error(
-                f"No archive for {project.assembly_info.title} "
+                f"No archive for {project.assembly_title} "
                 f"is found within {project.mod_config.archive_path}"
             )
         elif project.archive_version != project.assembly_version:

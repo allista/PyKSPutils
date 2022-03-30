@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List, Optional, Union
 
 from .Collections import ValueCollection, ListDict
 
@@ -10,10 +11,10 @@ class ConfigNode(ValueCollection):
 
     def __init__(self, name=""):
         ValueCollection.__init__(self)
-        self.subnodes = ListDict()
+        self.subnodes: ListDict[ConfigNode] = ListDict()
         self.name = name
 
-    def Clone(self, other):
+    def Clone(self, other: "ConfigNode") -> None:
         ValueCollection.Clone(self, other)
         self.subnodes = deepcopy(other.subnodes)
         self.name = other.name
@@ -21,7 +22,7 @@ class ConfigNode(ValueCollection):
     def __bool__(self):
         return bool(self.values) or bool(self.subnodes)
 
-    def AddNode(self, node):
+    def AddNode(self, node: Union["ConfigNode", str]) -> "ConfigNode":
         if isinstance(node, str):
             new_node = ConfigNode(node)
         elif isinstance(node, ConfigNode):
@@ -31,31 +32,33 @@ class ConfigNode(ValueCollection):
         self.subnodes.add(new_node.name, new_node)
         return new_node
 
-    def GetNode(self, name, idx=0):
+    def GetNode(self, name: str, idx=0) -> Optional["ConfigNode"]:
         return self.subnodes.get(name, idx)
 
-    def GetNodes(self, name):
+    def GetNodes(self, name: str) -> List["ConfigNode"]:
         return self.subnodes.get_all(name)
 
-    def HasNode(self, name):
+    def HasNode(self, name: str) -> bool:
         return name in self.subnodes
 
-    def Parse(self, text):
+    def Parse(self, text: str) -> None:
         self.values = ListDict()
         self.subnodes = ListDict()
         lines = self._preformat(text.splitlines())
         self._parse(lines, self)
         if len(self.values) == 0 and len(self.subnodes) == 1:
-            self.Clone(self.subnodes[0])
+            node = self.subnodes[0]
+            if node is not None:
+                self.Clone(node)
 
     @classmethod
-    def FromText(cls, text):
+    def FromText(cls, text: str) -> "ConfigNode":
         node = cls()
         node.Parse(text)
         return node
 
     @classmethod
-    def Load(cls, filename):
+    def Load(cls, filename: str) -> "ConfigNode":
         node = cls()
         try:
             with open(filename, encoding="utf8") as inp:
@@ -64,12 +67,12 @@ class ConfigNode(ValueCollection):
             print(f"Unable to parse {filename}: {exc!s}")
         return node
 
-    def Save(self, filename):
+    def Save(self, filename: str) -> None:
         with open(filename, "w", encoding="utf8") as out:
             out.write(str(self).strip("\n\r"))
 
     @classmethod
-    def _parse(cls, lines, node, index=0):
+    def _parse(cls, lines: List[List[str]], node: "ConfigNode", index=0) -> int:
         nlines = len(lines)
         while index < nlines:
             line = lines[index]
@@ -110,7 +113,7 @@ class ConfigNode(ValueCollection):
             pass
         return line_num
 
-    def _preformat(self, lines):
+    def _preformat(self, lines: List[str]) -> List[List[str]]:
         num_lines = len(lines)
         while num_lines > 0:
             num_lines -= 1

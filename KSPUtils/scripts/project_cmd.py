@@ -1,7 +1,7 @@
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Optional, TypeVar, cast
+from typing import Any, Callable, NoReturn, Optional, TypeVar, cast
 
 import click
 
@@ -9,7 +9,7 @@ from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.exit_code_context import ExitCodeContext, OnErrorHandler
 
 
-def on_error_exit(_message: str, exit_code: int) -> None:
+def on_error_exit(_message: str, exit_code: int) -> NoReturn:
     sys.exit(exit_code)
 
 
@@ -38,7 +38,7 @@ def pass_project(load=True, on_error: Optional[OnErrorHandler] = None) -> D:
     return deco
 
 
-def sys_exit(project: CSharpProject) -> None:
+def sys_exit(project: CSharpProject) -> NoReturn:
     sys.exit(project.context.exit_code)
 
 
