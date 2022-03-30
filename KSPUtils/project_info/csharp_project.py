@@ -32,7 +32,6 @@ class CSharpProjectError(Exception):
     """An error during c# project info gathering"""
 
 
-# pylint: disable=too-many-instance-attributes
 class CSharpProject:
     BLOCK_MOD_CONFIG = "Mod config"
     BLOCK_ASSEMBLY_INFO = "AssemblyInfo"

@@ -18,7 +18,6 @@ from KSPUtils.info_extractors.versions import (
 )
 
 
-# pylint: disable=too-many-instance-attributes
 class AssemblyInfo(FileSaverMixin, FileExtractor):
     def __init__(self, filepath: Path, date: datetime, content: TextIO) -> None:
         super().__init__(filepath)
