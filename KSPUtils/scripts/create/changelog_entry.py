@@ -1,206 +1,99 @@
-#
-# def sort_by_commit_date(lst):
-#     return sorted(lst, key=lambda c: c.committed_date, reverse=False)
-#
-#
-# def bfs_find_tag(head, tags):
-#     q = deque()
-#
-#     def add_parents(c):
-#         q.extend(sorted(c.parents, key=lambda c: c.committed_date))
-#
-#     add_parents(head)
-#     visited = {head}
-#     while q:
-#         c = q.pop()
-#         if c in visited:
-#             continue
-#         if c.hexsha in tags:
-#             break
-#         add_parents(c)
-#         visited.add(c)
-#     return sort_by_commit_date(visited)
-#
-#
-# def list_branch_only_commits(repo, branch, reference):
-#     ref_commits = set(repo.iter_commits(rev=reference))
-#     branch_commits = [c for c in repo.iter_commits(rev=branch) if c not in ref_commits]
-#     return sorted(branch_commits, key=lambda c: c.committed_date, reverse=False)
-#
-#
-# def format_commit_message(msg):
-#     lines = [line for line in (l.strip() for l in msg.splitlines()) if line]
-#     if not lines:
-#         return None
-#     if len(lines) == 1:
-#         return "* %s" % lines[0]
-#     formatted = ["* %s" % lines[0]]
-#     entry = None
-#     for i in range(1, len(lines)):
-#         l = lines[i]
-#         if (
-#             not entry
-#             or l.startswith("*")
-#             or len(l) < 2
-#             or l[0].isupper()
-#             and l[1].islower()
-#         ):
-#             if entry:
-#                 formatted[-1] = " ".join(entry)
-#             entry = ["    * %s" % l.lstrip("* ")]
-#             formatted.append(entry)
-#         else:
-#             entry.append(l)
-#     if entry:
-#         formatted[-1] = " ".join(entry)
-#     return "\n".join(formatted)
-#
-#
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser(
-#         description="Creates a KSP mod distribution " "and changelog file"
-#     )
-#     parser.add_argument(
-#         "-d",
-#         "--dir",
-#         metavar="path",
-#         type=str,
-#         default=".",
-#         help="Path to the root directory of the mod.",
-#     )
-#     parser.add_argument(
-#         "-s",
-#         "--source",
-#         metavar="path",
-#         type=str,
-#         default="",
-#         help="Relative path to the source directory.",
-#     )
-#     parser.add_argument(
-#         "-e",
-#         "--exclude",
-#         metavar="paths",
-#         type=str,
-#         nargs="*",
-#         default=[],
-#         help="Files that should be excluded from the distribution. "
-#         "Wildcards are supported.",
-#     )
-#     parser.add_argument(
-#         "-i",
-#         "--include",
-#         metavar="paths",
-#         type=str,
-#         nargs="*",
-#         default=[],
-#         help="Paths that should be included into the distribution. "
-#         "Exclude patterns are also applied here.",
-#     )
-#     parser.add_argument(
-#         "-o",
-#         "--output-dir",
-#         metavar="path",
-#         type=str,
-#         default="",
-#         help="Path to the root directory of the mod.",
-#     )
-#     parser.add_argument(
-#         "--dll",
-#         metavar="filename.dll",
-#         type=str,
-#         default="",
-#         help="Name of the dll to search for to get the actual mod version.",
-#     )
-#     args = parser.parse_args()
-#     # go to the root dir
-#     root = args.dir
-#     if not os.path.isdir(root):
-#         print("No such directory:", root)
-#         sys.exit(1)
-#     os.chdir(root)
-#     # use source and exclude
-#     if args.source:
-#         sources = [args.source]
-#     if args.exclude:
-#         exclude += args.exclude
-#     # check if it is indeed the mod directory
-#     if not os.path.exists("./GameData"):
-#         print("No %s/GameData directory." % root)
-#         sys.exit(1)
-#     # check repository
-#     repo = Repo(".")
-#     if repo.bare:
-#         print("Git repository is empty")
-#         sys.exit(2)
-#     # get mod name and current version
-#     modname, version = None, None
-#     wd = os.path.abspath(os.curdir)
-#     for src in sources:
-#         modname, version = parse_assembly_info(join(wd, src, assembly_info))
-#         if modname and version:
-#             break
-#         modname, version = parse_assembly_info(
-#             join(wd, src, "Properties", assembly_info)
-#         )
-#         if modname and version:
-#             break
-#     if not modname or not version:
-#         print("Unable to determine mod name and version")
-#         sys.exit(3)
-#     # if version is dynamic, use exiftool to get the actual version
-#     if "*" in version:
-#         if args.dll:
-#             dll = args.dll
-#         else:
-#             dll = modname + ".dll"
-#         new_version = None
-#         if dll[0] in "/.":
-#             new_version = get_version_from_dll(dll)
-#         else:
-#             found = False
-#             for dirname, dirs, files in os.walk("./GameData"):
-#                 for f in files:
-#                     if f == dll:
-#                         found = True
-#                         new_version = get_version_from_dll(os.path.join(dirname, f))
-#                         break
-#                 if found:
-#                     break
-#         if new_version is not None:
-#             version = new_version
-#     current = "%s-%s" % (modname, version)
-#     # make distribution package
-#     releases = args.output_dir or "Releases"
-#     try:
-#         os.mkdir(releases)
-#     except:
-#         pass
-#     release = join(releases, current + ".zip")
-#     print("Making release: %s\n" % release)
-#     with zipfile.ZipFile(release, "w", zipfile.ZIP_DEFLATED) as zipf:
-#         zip_dir(zipf, "GameData", exclude)
-#         if args.include:
-#             for incpath in args.include:
-#                 zip_dir(zipf, incpath, exclude)
-#     # get commit history
-#     tags = dict(
-#         (t.commit.hexsha, t.name)
-#         for t in repo.tags
-#         if t.name.startswith("v") and t.commit.hexsha != repo.head.commit.hexsha
-#     )
-#     branch = repo.iter_commits(rev=repo.head)
-#     commits = []
-#     for c in branch:
-#         if c.hexsha in tags:
-#             break
-#         commits.append(c)
-#     changelog = [format_commit_message(c.message) for c in sort_by_commit_date(commits)]
-#     # write changelog
-#     if changelog:
-#         print()
-#         print("\n".join(changelog))
-#         chlog_file = join(releases, current + ".log")
-#         with open(chlog_file, "w", encoding="utf8") as log:
-#             log.write("\n".join(changelog).strip())
-#         print("\nChangeLog:", chlog_file)
-#     print("Done")
+from typing import Generator, List, Optional
+
+import click
+from git import Repo, Tag
+from git.objects.commit import Commit
+
+from KSPUtils.project_info.csharp_project import CSharpProject
+from KSPUtils.scripts.project_cmd import pass_project, sys_exit
+
+
+def iter_commits_until(repo: Repo, tag: Optional[Tag]) -> Generator[Commit, None, None]:
+    stop_at = tag.commit if tag else None
+    for commit in repo.iter_commits(rev=repo.head):
+        if commit == stop_at:
+            break
+        yield commit
+
+
+def format_commit_message(commit: Commit) -> str:
+    lines: List[str] = [
+        str(line)
+        for line in (_line.strip() for _line in commit.message.splitlines())
+        if line
+    ]
+    if not lines:
+        return ""
+    if len(lines) == 1:
+        return f"* {lines[0]}"
+    formatted: List[str] = [f"* {lines[0]}"]
+    entry: List[str] = []
+    for line in lines[1:]:
+        if (
+            not entry
+            or line.startswith("*")
+            or len(line) < 2
+            or line[0].isupper()
+            and line[1].islower()
+        ):
+            if entry:
+                formatted.append(" ".join(entry))
+            entry = [f"    * {line.lstrip('* ')}"]
+        else:
+            entry.append(line)
+    if entry:
+        formatted.append(" ".join(entry))
+    return "\n".join(formatted)
+
+
+@click.command("changelog-entry")
+@click.option(
+    "--update",
+    help="Update the version, if it exists.",
+    is_flag=True,
+)
+@click.option("--dry-run", is_flag=True, help="Do not write anything to disk")
+@pass_project()
+def create_changelog_entry(project: CSharpProject, update: bool, dry_run: bool) -> None:
+    """
+    Creates new change log entry for the current AssemblyVersion.
+
+    If the entry already exists and the --update flag is provided,
+    the entry is replaced with the newly generated one.
+    """
+    if not project.assembly_version or not project.repo:
+        sys_exit(project)
+    with project.context(project.BLOCK_GIT_TAG):
+        if project.assembly_version <= project.git_tag_version:
+            project.error(
+                "Assembly version is not greater than the latest git tag.\n"
+                "Did you forget to update the AssemblyVersion?"
+            )
+            sys_exit(project)
+        if project.latest_tag and project.latest_tag.commit == project.repo.head.commit:
+            project.error(
+                "Latest git tag is on HEAD. Nothing to write into the change log."
+            )
+            sys_exit(project)
+    project.context.reset()
+    with project.context(project.BLOCK_CHANE_LOG):
+        entry = project.change_log[project.assembly_version]
+        if entry and not update:
+            project.error(
+                f"Change log entry already exists for: {project.assembly_version}"
+            )
+            sys_exit(project)
+        new_entry = "\n".join(
+            format_commit_message(commit)
+            for commit in iter_commits_until(project.repo, project.latest_tag)
+        ).strip()
+        if new_entry != entry:
+            project.change_log[project.assembly_version] = new_entry
+        if project.change_log.is_dirty:
+            click.echo(
+                f"Adding new change log entry for: {project.assembly_version}\n"
+                f"------------------------\n{new_entry}\n------------------------"
+            )
+            if not dry_run:
+                project.change_log.save()
+    sys_exit(project)
