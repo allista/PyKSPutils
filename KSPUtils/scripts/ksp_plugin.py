@@ -5,6 +5,7 @@ from KSPUtils.scripts.check.archive import check_archive
 from KSPUtils.scripts.check.for_merge import check_for_merge
 from KSPUtils.scripts.check.for_release import check_for_release
 from KSPUtils.scripts.create.archive import create_archive
+from KSPUtils.scripts.create.changelog import create_changelog
 from KSPUtils.scripts.create.changelog_entry import create_changelog_entry
 from KSPUtils.scripts.create.tag_by_version import create_tag_by_version
 from KSPUtils.scripts.project_cmd import create_project_cmd, pass_project
@@ -35,6 +36,7 @@ def create_grp() -> None:
 
 create_grp.add_command(create_archive)
 create_grp.add_command(create_tag_by_version)
+create_grp.add_command(create_changelog)
 create_grp.add_command(create_changelog_entry)
 
 
