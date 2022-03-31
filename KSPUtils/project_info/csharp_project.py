@@ -168,15 +168,20 @@ class CSharpProject:
         return bool(self.assembly_info)
 
     def update_changelog(self) -> None:
-        with self.context(self.BLOCK_CHANE_LOG).optional:
-            change_log = get_changelog(self.change_log_name, *self.search_paths)
-            if change_log:
-                self.change_log = change_log
-            else:
-                self.change_log = ChangeLog(
-                    self.path / self.mod_config.change_log,
-                    f"# {self.assembly_title or self.path.name}",
-                )
+        # noinspection PyUnusedLocal
+        change_log: Optional[ChangeLog] = None
+        with self.context(self.BLOCK_CHANE_LOG, Exception):
+            try:
+                change_log = get_changelog(self.change_log_name, *self.search_paths)
+            except FileNotFoundError:
+                pass
+        if change_log:
+            self.change_log = change_log
+        else:
+            self.change_log = ChangeLog(
+                self.path / self.mod_config.change_log,
+                f"# {self.assembly_title or self.path.name} Change Log",
+            )
 
     def update_latest_tag(self):
         with self.context(self.BLOCK_GIT_TAG):

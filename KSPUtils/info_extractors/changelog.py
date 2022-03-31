@@ -76,14 +76,17 @@ class ChangeLog(FileSaverMixin, FileExtractor):
         with filepath.open("rt", encoding="utf8") as inp:
             version: Optional[ChangeLogVersion] = None
             entry: List[str] = []
-            for line in inp:
+            for i, line in enumerate(inp):
                 v = ChangeLogVersion.from_str(line, date=mod_time)
                 if v:
-                    entry_text = _combine_entry(entry)
                     if version:
-                        entries[version] = entry_text
+                        if version in entries:
+                            raise ValueError(
+                                f"Duplicate entry: '{version}' in {filepath}:{i+1}"
+                            )
+                        entries[version] = _combine_entry(entry)
                     else:
-                        header = entry_text
+                        header = _combine_entry(entry)
                     version = v
                     entry = []
                 else:
