@@ -16,11 +16,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "check_project = KSPUtils.scripts.check_project:cmd",
-            "git_tag_by_assembly_info = KSPUtils.scripts.git_tag_by_assembly_info:cmd",
-            "publish_release = KSPUtils.scripts.publish_release:cmd",
+            "ksp_plugin = KSPUtils.scripts.ksp_plugin:cmd",
             "update_KSP_references = KSPUtils.scripts.update_KSP_references:cmd",
-            "make_mod_release = KSPUtils.scripts.make_mod_release:cmd",
         ],
     },
 )

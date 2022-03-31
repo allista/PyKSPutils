@@ -2,25 +2,18 @@ import click
 
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.project_info.getters import get_git_tag_version
-from KSPUtils.scripts.project_cmd import (
-    create_project_cmd,
-    on_error_exit,
-    pass_project,
-    sys_exit,
-)
-
-cmd = create_project_cmd(on_error_exit)
+from KSPUtils.scripts.project_cmd import on_error_exit, pass_project, sys_exit
 
 
-@cmd.command("create")
+@click.command("tag-by-version")
 @click.option(
     "--require-branch",
     default="master",
     show_default=True,
     help="Require this branch to be checked out to create the tag",
 )
-@pass_project()
-def create_tag(project: CSharpProject, require_branch: str) -> None:
+@pass_project(on_error_exit)
+def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
     """
     Creates lightweight git tag named after AssemblyVersion from AssemblyInfo.cs
     The version is prefixed with "v", e.g. "v1.2.3".
@@ -93,43 +86,4 @@ def create_tag(project: CSharpProject, require_branch: str) -> None:
             new_tag = project.repo.create_tag(f"{project.assembly_version}")
             new_tag_version = get_git_tag_version(new_tag)
             click.echo(f"Created new tag: {new_tag_version!r}")
-    sys_exit(project)
-
-
-@cmd.command("remove")
-@pass_project()
-def remove_tag(project: CSharpProject) -> None:
-    """
-    Removes git tag named after AssemblyVersion from AssemblyInfo.cs
-
-    Some conditions are checked before the tag is removed:
-
-    \b
-        - the git tag with this version should be the latest tag
-    """
-    if not project.repo:
-        return
-    with project.context(project.BLOCK_GIT_TAG):
-        if not project.latest_tag:
-            project.error("No tag found")
-            return
-        if not project.git_tag_version:
-            project.error(
-                f"Unable to parse latest git tag: {project.latest_tag.name}",
-            )
-            return
-    with project.context("Assembly vs Git tag"):
-        if project.assembly_version != project.git_tag_version:
-            project.error(
-                "Assembly version does not match the latest git tag:\n"
-                f"Assembly: {project.assembly_version!r}\n"
-                f"Git tag:  {project.git_tag_version!r}"
-            )
-            return
-    if not project.context.failed:
-        with project.context("Remove git tag"):
-            click.echo(f"Removing the tag: {project.git_tag_version!r}")
-            project.repo.delete_tag(project.latest_tag)
-            project.update_latest_tag()
-            click.echo(f"Latest tag now: {project.git_tag_version!r}")
     sys_exit(project)
