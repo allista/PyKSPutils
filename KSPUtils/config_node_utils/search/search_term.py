@@ -40,8 +40,7 @@ class SearchTerm(list, AbstractTerm):
             if not self:
                 return True
             return self.node.match(obj.type) is not None and (
-                self.name is None
-                or self.name.match(obj.name) is not None  # type: ignore[attr-defined]
+                self.name is None or self.name.match(obj.name) is not None
             )
 
         def match_as_value(self, obj: NamedObject) -> bool:

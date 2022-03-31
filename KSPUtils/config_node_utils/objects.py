@@ -1,32 +1,25 @@
-from KSPUtils.config_node_utils.named_object import NamedObject
-
-NamedObject.mirror_value("name")
-
-
-class Part(NamedObject):
-    pass
-
-
-Part.register("PART")
-Part.mirror_value("mass", float)
-Part.mirror_value("cost", float)
-Part.mirror_value("title")
-Part.mirror_value("description")
-Part.setup_children_dict("resources", "RESOURCE")
-Part.setup_children_dict("modules", "MODULE")
+from KSPUtils.config_node_utils.named_object import (
+    ChildrenDict,
+    NamedObject,
+    ValueProperty,
+)
 
 
 class Resource(NamedObject):
-    pass
-
-
-Resource.register("RESOURCE")
-Resource.mirror_value("amount", float)
-Resource.mirror_value("maxAmount", float)
+    type = "RESOURCE"
+    amount = ValueProperty(float)
+    maxAmount = ValueProperty(float)
 
 
 class Module(NamedObject):
-    pass
+    type = "MODULE"
 
 
-Module.register("MODULE")
+class Part(NamedObject):
+    type = "PART"
+    mass = ValueProperty(float)
+    cost = ValueProperty(float)
+    title = ValueProperty(str)
+    description = ValueProperty(str)
+    resources = ChildrenDict(Resource)
+    modules = ChildrenDict(Module)
