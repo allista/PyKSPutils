@@ -54,7 +54,7 @@ remove_grp.add_command(remove_tag_by_version)
 def show_info(project: CSharpProject, print_changelog) -> None:
     """Print summary information about KSP plugin project in the current folder"""
     click.echo(project)
-    if print_changelog and project.change_log:
+    if print_changelog:
         change_log = project.change_log.latest_entry
         if change_log:
             click.echo(

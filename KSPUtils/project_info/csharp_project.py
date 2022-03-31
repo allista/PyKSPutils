@@ -51,8 +51,8 @@ class CSharpProject:
         self.search_paths: List[Path] = []
         self.context = errors_context or ErrorsContext(FileNotFoundError)
         self.mod_config = ModConfig()
+        self.change_log = ChangeLog(self.path / self.mod_config.change_log)
         self.assembly_info: Optional[AssemblyInfo] = None
-        self.change_log: Optional[ChangeLog] = None
         self.dll_version: Optional[ExifVersion] = None
         self.archive_version: Optional[ArchiveVersion] = None
         self.github: Optional[Github] = None
@@ -129,7 +129,7 @@ class CSharpProject:
 
     @property
     def change_log_version(self) -> Optional[VersionBase]:
-        return self.change_log.latest_version if self.change_log else None
+        return self.change_log.latest_version
 
     @property
     def game_data_path(self) -> Optional[Path]:
@@ -155,7 +155,7 @@ class CSharpProject:
             and (not archive or v == self.archive_version)
         )
 
-    def update_mod_config(self):
+    def update_mod_config(self) -> None:
         with self.context(self.BLOCK_MOD_CONFIG):
             self.mod_config = ModConfig.default(self.path)
             self.search_paths = get_search_paths(
@@ -167,10 +167,16 @@ class CSharpProject:
             self.assembly_info = get_assembly_info(*self.search_paths)
         return bool(self.assembly_info)
 
-    def update_changelog(self) -> bool:
-        with self.context(self.BLOCK_CHANE_LOG):
-            self.change_log = get_changelog(self.change_log_name, *self.search_paths)
-        return bool(self.change_log)
+    def update_changelog(self) -> None:
+        with self.context(self.BLOCK_CHANE_LOG).optional:
+            change_log = get_changelog(self.change_log_name, *self.search_paths)
+            if change_log:
+                self.change_log = change_log
+            else:
+                self.change_log = ChangeLog(
+                    self.path / self.mod_config.change_log,
+                    f"# {self.assembly_title or self.path.name}",
+                )
 
     def update_latest_tag(self):
         with self.context(self.BLOCK_GIT_TAG):

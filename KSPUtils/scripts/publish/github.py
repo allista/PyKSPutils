@@ -93,9 +93,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
         except github.UnknownObjectException:
             pass
         # get the change log entry for the release body
-        change_log = (
-            project.change_log[project.assembly_version] if project.change_log else None
-        )
+        change_log = project.change_log[project.assembly_version]
         if not change_log:
             project.error(
                 f"Unable to get change log entry for: {project.assembly_version}"
