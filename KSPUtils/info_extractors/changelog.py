@@ -37,8 +37,11 @@ class ChangeLog(FileSaverMixin, FileExtractor):
 
     def __str__(self):
         res = [self.header] if self.header else []
-        for version in self._entries:
-            res += [f"## {version}", self._entries[version]]
+        for version in self._order:
+            res.append(f"## {version}")
+            entry = self._entries[version]
+            if entry:
+                res.append(entry)
         return "\n\n".join(res)
 
     def __getitem__(self, v: Optional[VersionBase]) -> Optional[str]:
