@@ -16,6 +16,10 @@ from KSPUtils.info_extractors.versions import (
 ChangeLogEntries = Dict[VersionBase, str]
 
 
+def _combine_entry(entry: List[str]) -> str:
+    return dedent("".join(entry)).strip("\n\r\t ")
+
+
 class ChangeLog(FileSaverMixin, FileExtractor):
     """
     Extracts change log records and stores them
@@ -75,7 +79,7 @@ class ChangeLog(FileSaverMixin, FileExtractor):
             for line in inp:
                 v = ChangeLogVersion.from_str(line, date=mod_time)
                 if v:
-                    entry_text = dedent("".join(entry)).rstrip("\n\r")
+                    entry_text = _combine_entry(entry)
                     if version:
                         entries[version] = entry_text
                     else:
@@ -84,4 +88,9 @@ class ChangeLog(FileSaverMixin, FileExtractor):
                     entry = []
                 else:
                     entry.append(line)
+            if version:
+                if version not in entries:
+                    entries[version] = _combine_entry(entry)
+            elif not header and entry:
+                header = _combine_entry(entry)
         return cls(filepath=filepath, header=header, entries=entries)
