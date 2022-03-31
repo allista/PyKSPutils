@@ -3,11 +3,11 @@ import sys
 import click
 
 from KSPUtils import spacedock
-from KSPUtils.gpg_utils import GPG_ID_FILE
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.project_cmd import on_error_exit, pass_project, sys_exit
 from KSPUtils.scripts.publish.common import GPG_FILE_HELP
 from KSPUtils.spacedock import SPACEDOCK_AUTH_FILE, SpacedockError
+from KSPUtils.utils.gpg import GPG_ID_FILE
 
 
 @click.group("spacedock")

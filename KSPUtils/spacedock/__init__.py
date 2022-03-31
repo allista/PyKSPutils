@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from KSPUtils.gpg_utils import decrypt, encrypt
 from KSPUtils.info_extractors.file_extractor import StrPath
-from KSPUtils.path_utils import search_upward
 from KSPUtils.spacedock.errors import SpacedockError
 from KSPUtils.spacedock.user import User
+from KSPUtils.utils.gpg import decrypt, encrypt
+from KSPUtils.utils.path import search_upward
 
 SPACEDOCK_AUTH_FILE = ".spacedock.gpg"
 

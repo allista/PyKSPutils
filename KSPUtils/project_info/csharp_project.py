@@ -6,8 +6,6 @@ from git import Repo, Tag
 from github import Github
 
 from KSPUtils.errors_context import ErrorsContext, OnErrorHandler
-from KSPUtils.git_utils import get_repo, latest_tag
-from KSPUtils.github_utils import GithubError, get_github
 from KSPUtils.info_extractors.assembly_info import AssemblyInfo
 from KSPUtils.info_extractors.changelog import ChangeLog
 from KSPUtils.info_extractors.file_extractor import StrPath
@@ -18,7 +16,6 @@ from KSPUtils.info_extractors.versions import (
     TagVersion,
     VersionBase,
 )
-from KSPUtils.path_utils import get_search_paths
 from KSPUtils.project_info.getters import (
     get_archive_version,
     get_assembly_info,
@@ -26,6 +23,9 @@ from KSPUtils.project_info.getters import (
     get_git_tag_version,
 )
 from KSPUtils.project_info.mod_config import ModConfig
+from KSPUtils.utils.git import get_repo, latest_tag
+from KSPUtils.utils.github import GithubError, get_github
+from KSPUtils.utils.path import get_search_paths
 
 
 class CSharpProjectError(Exception):

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from KSPUtils.path_utils import get_search_paths
+from KSPUtils.utils.path import get_search_paths
 
 
 def test_get_search_paths_one_path():

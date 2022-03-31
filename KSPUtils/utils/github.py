@@ -3,9 +3,9 @@ from pathlib import Path
 from github import Github
 
 from KSPUtils.exception_chain import ExceptionChain
-from KSPUtils.gpg_utils import decrypt, encrypt
 from KSPUtils.info_extractors.file_extractor import StrPath
-from KSPUtils.path_utils import search_upward
+from KSPUtils.utils.gpg import decrypt, encrypt
+from KSPUtils.utils.path import search_upward
 
 GITHUB_AUTH_FILE = ".github.gpg"
 

@@ -3,7 +3,7 @@ from typing import BinaryIO, Union
 import gnupg
 
 from KSPUtils.info_extractors.file_extractor import StrPath
-from KSPUtils.path_utils import search_upward
+from KSPUtils.utils.path import search_upward
 
 GPG_ID_FILE = ".gpg-id"
 
@@ -30,7 +30,7 @@ def get_gpg_id(path: StrPath) -> str:
 
 
 def encrypt(data: Union[str, bytes, BinaryIO]) -> str:
-    gpg_id = get_gpg_id(".")
+    gpg_id = get_gpg_id("..")
     if isinstance(data, (str, bytes)):
         return _crypt_to_data(get_gpg().encrypt(data, gpg_id))
     return _crypt_to_data(get_gpg().encrypt_file(data, gpg_id))

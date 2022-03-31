@@ -6,10 +6,10 @@ import github
 from github.GitReleaseAsset import GitReleaseAsset
 from github.Tag import Tag
 
-from KSPUtils.github_utils import GITHUB_AUTH_FILE, GithubError, set_github_token
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.project_cmd import on_error_exit, pass_project, sys_exit
 from KSPUtils.scripts.publish.common import GPG_FILE_HELP
+from KSPUtils.utils.github import GITHUB_AUTH_FILE, GithubError, set_github_token
 
 
 @click.group("github")
