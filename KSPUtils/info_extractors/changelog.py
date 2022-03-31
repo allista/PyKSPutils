@@ -35,9 +35,7 @@ class ChangeLog(FileSaverMixin, FileExtractor):
         super().__init__(filepath)
         self.header = header
         self._entries = entries or {}
-        self._order: List[VersionBase] = (
-            sorted(entries, reverse=True) if entries else []
-        )
+        self._order: List[VersionBase] = sorted(self._entries, reverse=True)
 
     def __str__(self):
         res = [self.header] if self.header else []
