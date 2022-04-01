@@ -47,7 +47,7 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
                         f"The latest git tag {project.latest_tag.name} is on the HEAD"
                     )
                     return
-    with project.context("Assembly vs ChangeLog"):
+    with project.context(project.BLOCK_CHANE_LOG):
         if (
             project.assembly_version
             and project.assembly_version > project.change_log_version
@@ -81,7 +81,7 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
         )
         if project.git_tag_version:
             click.echo(f"{project.git_tag_version!r}")
-        with project.context("New git tag"):
+        with project.context(project.BLOCK_GIT):
             new_tag = project.repo.create_tag(f"{project.assembly_version}")
             new_tag_version = get_git_tag_version(new_tag)
             click.echo(f"Created new tag: {new_tag_version!r}")

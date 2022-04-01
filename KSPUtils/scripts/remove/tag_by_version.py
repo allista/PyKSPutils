@@ -35,7 +35,7 @@ def remove_tag_by_version(project: CSharpProject) -> None:
             )
             return
     if not project.context.failed:
-        with project.context("Remove git tag"):
+        with project.context(project.BLOCK_GIT):
             click.echo(f"Removing the tag: {project.git_tag_version!r}")
             project.repo.delete_tag(project.latest_tag)
             project.update_latest_tag()
