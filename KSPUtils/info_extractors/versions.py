@@ -7,11 +7,14 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from subprocess import CalledProcessError, check_output
-from typing import Any, Dict, Match, Optional, Type
+from typing import Any, Dict, Match, Optional, Type, TypeVar
 
 from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.regex_extractor import RegexExtractor, RegexExtractorType
 from KSPUtils.info_extractors.titles import ArchiveTitle, FilenameTitle
+
+
+VersionBaseType = TypeVar("VersionBaseType", bound="VersionBase")
 
 
 @dataclass(frozen=True, repr=False, eq=False)
@@ -23,6 +26,14 @@ class VersionBase:
     build: Optional[int] = None
     revision: Optional[int] = None
     date: Optional[datetime] = None
+
+    @classmethod
+    def clone(
+        cls: Type[VersionBaseType], other: "VersionBase", **kwargs: Any
+    ) -> VersionBaseType:
+        args = other.__dict__.copy()
+        args.update(kwargs)
+        return cls(**args)
 
     @property
     def as_str_without_prefix(self):
