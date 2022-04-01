@@ -8,7 +8,7 @@ from KSPUtils.info_extractors.file_extractor import StrPath
 from KSPUtils.info_extractors.versions import VersionBase
 from KSPUtils.spacedock import SpacedockError
 from KSPUtils.spacedock.api_object import ApiObject
-from KSPUtils.spacedock.common import WithId
+from KSPUtils.spacedock.common import REQUEST_TIMEOUT, WithId
 from KSPUtils.spacedock.mod_version import ModVersion
 
 
@@ -89,6 +89,7 @@ class Mod(WithId, ApiObject):
                     ("notify-followers", (None, "yes" if notify_followers else "no")),
                     ("zipball", (zipball.name, zipball.read_bytes())),
                 ),
+                timeout=REQUEST_TIMEOUT,
             )
             res.raise_for_status()
         except Exception as e:

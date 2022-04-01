@@ -6,7 +6,7 @@ import jsonobject as jo
 import requests
 
 from KSPUtils.spacedock import SpacedockError
-from KSPUtils.spacedock.common import API_URL
+from KSPUtils.spacedock.common import API_URL, REQUEST_TIMEOUT
 
 
 def make_dataclass_object(class_name, members):
@@ -40,6 +40,7 @@ class ApiObject(jo.JsonObject):
         if cls._COOKIES:
             kwargs.setdefault("cookies", cls._COOKIES)
         try:
+            kwargs.setdefault("timeout", REQUEST_TIMEOUT)
             res = requests.get(url, params, **kwargs)
             res.raise_for_status()
             return cls(res.json())

@@ -5,7 +5,7 @@ import jsonobject as jo
 import requests
 
 from KSPUtils.spacedock.api_object import ApiObject
-from KSPUtils.spacedock.common import API_URL
+from KSPUtils.spacedock.common import API_URL, REQUEST_TIMEOUT
 from KSPUtils.spacedock.mod import Mod
 
 
@@ -41,6 +41,7 @@ class User(ApiObject):
         res = requests.post(
             f"{API_URL}/login",
             files=(("username", (None, username)), ("password", (None, password))),
+            timeout=REQUEST_TIMEOUT,
         )
         res.raise_for_status()
         cls._set_cookies(res.cookies)
