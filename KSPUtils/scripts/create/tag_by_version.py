@@ -35,7 +35,6 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
         if project.repo.active_branch.name != require_branch:
             project.error(f"Not on the '{require_branch}' branch")
             return
-    with project.context(project.BLOCK_GIT_TAG):
         if project.latest_tag:
             if not project.git_tag_version:
                 click.echo(

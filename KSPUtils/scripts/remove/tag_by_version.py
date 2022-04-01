@@ -17,7 +17,7 @@ def remove_tag_by_version(project: CSharpProject) -> None:
     """
     if not project.repo:
         return
-    with project.context(project.BLOCK_GIT_TAG):
+    with project.context(project.BLOCK_GIT):
         if not project.latest_tag:
             project.error("No tag found")
             return

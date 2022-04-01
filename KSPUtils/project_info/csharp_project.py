@@ -37,7 +37,6 @@ class CSharpProject:
     BLOCK_ASSEMBLY_INFO = "AssemblyInfo"
     BLOCK_CHANE_LOG = "ChangeLog"
     BLOCK_GIT = "Git"
-    BLOCK_GIT_TAG = "Git tag"
     BLOCK_ARCHIVE = "Archive"
     BLOCK_GITHUB = "GitHub"
     BLOCK_SPACEDOCK = "Spacedock"
@@ -184,7 +183,7 @@ class CSharpProject:
             )
 
     def update_latest_tag(self):
-        with self.context(self.BLOCK_GIT_TAG):
+        with self.context(self.BLOCK_GIT):
             if self.repo:
                 self.latest_tag = latest_tag(self.repo)
                 if self.latest_tag is not None:

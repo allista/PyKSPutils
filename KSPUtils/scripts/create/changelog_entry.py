@@ -64,7 +64,7 @@ def create_changelog_entry(project: CSharpProject, update: bool, dry_run: bool) 
     """
     if not project.assembly_version or not project.repo:
         sys_exit(project)
-    with project.context(project.BLOCK_GIT_TAG):
+    with project.context(project.BLOCK_GIT):
         if project.assembly_version <= project.git_tag_version:
             project.error(
                 "Assembly version is not greater than the latest git tag.\n"

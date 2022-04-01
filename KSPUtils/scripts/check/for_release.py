@@ -18,7 +18,6 @@ def check_for_release(project: CSharpProject, require_branch: str) -> None:
         if project.repo:
             if project.repo.active_branch.name != require_branch:
                 project.error(f"Not on the '{require_branch}' branch")
-    with project.context(project.BLOCK_GIT_TAG):
         if project.latest_tag is None:
             project.error(f"No tags in the repo at {project.path}")
         elif project.repo:

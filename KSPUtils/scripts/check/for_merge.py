@@ -18,7 +18,6 @@ def check_for_merge(project: CSharpProject, require_branch: str) -> None:
         if project.repo:
             if project.repo.active_branch.name != require_branch:
                 project.error(f"Not on the '{require_branch}' branch")
-    with project.context(project.BLOCK_GIT_TAG):
         if project.latest_tag and not project.git_tag_version:
             click.echo(f"WARNING: Unable to parse git tag: {project.latest_tag.name}")
     with project.context(project.BLOCK_ASSEMBLY_INFO):
