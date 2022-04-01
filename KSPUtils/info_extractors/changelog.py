@@ -52,7 +52,7 @@ class ChangeLog(FileSaverMixin, FileExtractor):
     def __setitem__(self, v: VersionBase, entry) -> None:
         if v not in self._entries:
             self._order.append(v)
-            self._order.sort()
+            self._order.sort(reverse=True)
         self._entries[v] = entry
         self._dirty = True
 
