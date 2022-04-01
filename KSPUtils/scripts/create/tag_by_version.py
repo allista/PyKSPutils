@@ -36,15 +36,29 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
             project.error(f"Not on the '{require_branch}' branch")
             sys_exit(project)
         if project.latest_tag:
+            if project.latest_tag.commit == project.repo.head.commit:
+                project.error(
+                    f"The latest git tag {project.latest_tag.name} is on the HEAD"
+                )
+                sys_exit(project)
             if not project.git_tag_version:
                 click.echo(
                     f"WARNING: Unable to parse latest git tag: {project.latest_tag.name}",
                     err=True,
                 )
             else:
-                if project.latest_tag.commit == project.repo.head.commit:
+                if project.git_tag_version > project.assembly_version:
                     project.error(
-                        f"The latest git tag {project.latest_tag.name} is on the HEAD"
+                        f"Assembly version {project.assembly_version} is less "
+                        f"than the git tag version {project.git_tag_version}.\n"
+                        f"Did you forget to update AssemblyInfo and ChangeLog?",
+                    )
+                    sys_exit(project)
+                if project.git_tag_version == project.assembly_version:
+                    project.error(
+                        f"Assembly version {project.assembly_version} "
+                        "is equal to the latest git tag version.\n"
+                        "You have to investigate and remove the tag manually.",
                     )
                     sys_exit(project)
     with project.context(project.BLOCK_CHANE_LOG):
@@ -57,23 +71,7 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
                 f"than the ChangeLog version {project.change_log_version}\n"
                 f"Fill in the changelog entry for {project.assembly_version}",
             )
-            return
-    with project.context("Git tag version"):
-        if project.git_tag_version:
-            if project.git_tag_version > project.assembly_version:
-                project.error(
-                    f"Assembly version {project.assembly_version} is less "
-                    f"than the git tag version {project.git_tag_version}.\n"
-                    f"Did you forget to update AssemblyInfo and ChangeLog?",
-                )
-                return
-            if project.git_tag_version == project.assembly_version:
-                project.error(
-                    f"Assembly version {project.assembly_version} "
-                    "is equal to the latest git tag version.\n"
-                    "You have to investigate and remove the tag manually.",
-                )
-                return
+            sys_exit(project)
     if not project.context.failed:
         click.echo(
             f"Creating new lightweight tag at the HEAD of the '{require_branch}' branch:\n"
