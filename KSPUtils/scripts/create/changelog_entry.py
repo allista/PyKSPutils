@@ -4,6 +4,7 @@ import click
 from git import Repo, Tag
 from git.objects.commit import Commit
 
+from KSPUtils.info_extractors.versions import ChangeLogVersion
 from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.project_cmd import pass_project, sys_exit
 
@@ -88,7 +89,11 @@ def create_changelog_entry(project: CSharpProject, update: bool, dry_run: bool) 
             for commit in iter_commits_until(project.repo, project.latest_tag)
         ).strip()
         if new_entry != entry:
-            project.change_log[project.assembly_version] = new_entry
+            changelog_version = ChangeLogVersion.clone(
+                project.assembly_version,
+                title=f"/ {project.assembly_version.date:%Y-%m-%d}",
+            )
+            project.change_log[changelog_version] = new_entry
         if project.change_log.is_dirty:
             click.echo(
                 f"Adding new change log entry for: {project.assembly_version}\n"
