@@ -82,6 +82,7 @@ class Mod(WithId, ApiObject):
             zipball = Path(zipball)
             res = requests.post(
                 f"{self._url(id=self.id)}/update",
+                cookies=self._COOKIES,
                 files=(
                     ("version", (None, version)),
                     ("changelog", (None, changelog)),
