@@ -92,7 +92,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 )
                 sys_exit(project)
         except github.UnknownObjectException:
-            pass
+            release = None
         # get the change log entry for the release body
         change_log = project.change_log[project.assembly_version]
         if not change_log:
