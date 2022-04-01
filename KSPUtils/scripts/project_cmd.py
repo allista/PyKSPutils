@@ -1,6 +1,7 @@
-from pathlib import Path
-from typing import Any, Callable, List, TypeVar, cast
+import sys
 from functools import wraps
+from pathlib import Path
+from typing import Any, Callable, NoReturn, Optional, TypeVar, cast
 
 import click
 
@@ -8,8 +9,8 @@ from KSPUtils.project_info.csharp_project import CSharpProject
 from KSPUtils.scripts.exit_code_context import ExitCodeContext, OnErrorHandler
 
 
-def on_error_echo(message: str, _exit_code: int) -> None:
-    click.echo(message, err=True)
+def on_error_exit(_message: str, exit_code: int) -> NoReturn:
+    sys.exit(exit_code)
 
 
 def get_project(ctx: click.Context) -> CSharpProject:
@@ -17,39 +18,37 @@ def get_project(ctx: click.Context) -> CSharpProject:
 
 
 F = TypeVar("F", bound=Callable[..., Any])
+D = Callable[[F], F]
 
 
-def pass_project(f: F) -> F:
-    @click.pass_context
-    @wraps(f)
-    def project_context_wrapper(ctx: click.Context, *args, **kwargs):
-        return f(get_project(ctx), *args, **kwargs)
+def pass_project(load=True, on_error: Optional[OnErrorHandler] = None) -> D:
+    def deco(f: F) -> F:
+        @click.pass_context
+        @wraps(f)
+        def project_context_wrapper(ctx: click.Context, *args, **kwargs):
+            project = get_project(ctx)
+            if load:
+                project.load(on_error=on_error)
+            elif on_error:
+                project.context.on_error = on_error
+            return f(project, *args, **kwargs)
 
-    return cast(F, project_context_wrapper)
+        return cast(F, project_context_wrapper)
+
+    return deco
 
 
-def create_project_cmd(on_error: OnErrorHandler = on_error_echo) -> click.Group:
+def sys_exit(project: CSharpProject) -> NoReturn:
+    sys.exit(project.context.exit_code)
+
+
+def create_project_cmd(on_error: Optional[OnErrorHandler] = None) -> click.Group:
     @click.group()
-    @click.option(
-        "--change-log",
-        default="ChangeLog.md",
-        type=click.Path(),
-        show_default=True,
-        help="Path to the changelog file where to search for the version",
-    )
-    @click.option(
-        "--add-search-path",
-        multiple=True,
-        default=[],
-        help="Additional paths to search for project sources",
-    )
     @click.pass_context
-    def cmd(ctx: click.Context, change_log: str, add_search_path: List[str]):
+    def cmd(ctx: click.Context):
         ctx.obj = CSharpProject(
             Path.cwd(),
-            *add_search_path,
-            change_log=change_log,
-            errors_context=ExitCodeContext(on_error, ValueError),
+            errors_context=ExitCodeContext(FileNotFoundError, on_error=on_error),
         )
 
     return cmd

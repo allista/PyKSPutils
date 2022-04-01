@@ -5,7 +5,8 @@
 import argparse
 import sys
 
-from KSPUtils import ConfigNode, Part, SearchQuery
+from KSPUtils.config_node_utils import ConfigNode, Part
+from KSPUtils.config_node_utils.search import SearchQuery
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Search through part configurations using '

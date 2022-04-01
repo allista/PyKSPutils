@@ -1,2 +1,7 @@
-click
-GitPython
+click==8.0.4
+GitPython==3.1.27
+PyGithub==1.55
+python-gnupg==0.4.8
+PyYAML==6.0
+jsonobject==1.0.0
+requests==2.27.1

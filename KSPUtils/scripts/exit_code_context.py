@@ -1,10 +1,7 @@
 from functools import reduce
-from functools import reduce
-from typing import Callable, Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type
 
-from KSPUtils.errors_context import ErrorsContext, ErrorsContextError
-
-OnErrorHandler = Callable[[str, int], None]
+from KSPUtils.errors_context import ErrorsContext, ErrorsContextError, OnErrorHandler
 
 
 class ExitCodeContextError(ErrorsContextError):
@@ -21,12 +18,11 @@ class ExitCodeContext(ErrorsContext):
 
     def __init__(
         self,
-        on_error: Optional[OnErrorHandler] = None,
         *handle_exceptions: Type[BaseException],
         block_ids: Optional[Dict[str, int]] = None,
+        on_error: Optional[OnErrorHandler] = None,
     ):
-        super().__init__(*handle_exceptions)
-        self._on_error_handler = on_error
+        super().__init__(*handle_exceptions, on_error=on_error)
         self._block_ids: Dict[str, int] = block_ids or {}
 
     def __call__(
@@ -45,21 +41,16 @@ class ExitCodeContext(ErrorsContext):
         existing_block_id = self._block_ids.get(
             block, len(self._block_ids) if block_id is None else block_id
         )
-        if not (0 <= existing_block_id <= 7):
+        if not 0 <= existing_block_id <= 7:
             raise ExitCodeContextError("ExitCodeContext: block id should be in [0, 7]")
         if block_id is not None and existing_block_id != block_id:
             raise ExitCodeContextError(
-                f"ExitCodeContext: block id {block_id} differs from the existing block {block}[{existing_block_id}]"
+                f"ExitCodeContext: block id {block_id} differs "
+                f"from the existing block {block}[{existing_block_id}]"
             )
         self._block_ids[block] = existing_block_id
         super().__call__(block, *handle_exceptions)
         return self
-
-    def _on_error(self, message: str) -> None:
-        if self._on_error_handler is not None:
-            self._on_error_handler(message, self.exit_code)
-        else:
-            super()._on_error(message)
 
     @property
     def exit_code(self) -> int:
