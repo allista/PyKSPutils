@@ -14,5 +14,5 @@ class FileSaverMixin:
 
     def save(self):
         with self.filepath.open("wt", encoding="utf8") as out:
-            out.write(str(self))
+            out.write(f"{self!s}\n")
         self._dirty = False
