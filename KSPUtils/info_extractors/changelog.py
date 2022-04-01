@@ -64,6 +64,15 @@ class ChangeLog(FileSaverMixin, FileExtractor):
     def latest_entry(self) -> Optional[str]:
         return self[self.latest_version]
 
+    @property
+    def has_changed(self):
+        return str(self) != self.get_original_text()
+
+    def get_original_text(self) -> Optional[str]:
+        if self.filepath.is_file():
+            return self.filepath.read_text(encoding="utf8")
+        return None
+
     @classmethod
     def from_file(
         cls: Type[FileExtractorType], filename: StrPath, **kwargs: Any
