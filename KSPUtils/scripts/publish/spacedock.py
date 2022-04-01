@@ -50,11 +50,12 @@ def upload_to_spacedock(
 ) -> None:
     if not project.mod_config.spacedock_mod_id or not project.mod_config.archive_path:
         sys.exit(0)
-    with project.context(project.BLOCK_SPACEDOCK, SpacedockError):
+    with project.context(project.BLOCK_VERSIONS):
         # see if locally everything matches
         if not project.versions_match():
             project.error(f"Versions do not match\n{project.versions_info()}")
             return
+    with project.context(project.BLOCK_SPACEDOCK, SpacedockError):
         if (
             not project.assembly_info
             or not project.assembly_version

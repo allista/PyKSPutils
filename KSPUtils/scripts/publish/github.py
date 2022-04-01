@@ -58,11 +58,12 @@ def upload_to_github(project: CSharpProject, update) -> None:
     project.update_github()
     if not project.github:
         return
-    with project.context(project.BLOCK_GITHUB, github.GithubException):
+    with project.context(project.BLOCK_VERSIONS):
         # see if locally everything matches
         if not project.versions_match() or not project.git_tag_version:
             project.error(f"Versions do not match\n{project.versions_info()}")
             return
+    with project.context(project.BLOCK_GITHUB, github.GithubException):
         repo = project.github.get_repo(project.mod_config.github_url)
         # check if the tag for the release exists on the remote
         published_tag: Optional[Tag] = None

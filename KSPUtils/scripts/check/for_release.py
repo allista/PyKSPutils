@@ -27,7 +27,7 @@ def check_for_release(project: CSharpProject, require_branch: str) -> None:
                 )
             if project.git_tag_version is None:
                 project.error(f"Unable to parse git tag: {project.latest_tag.name}")
-    with project.context("Versions Check"):
+    with project.context(project.BLOCK_VERSIONS):
         if not project.versions_match(archive=False):
             project.error(
                 f"Versions do not match\n{project.versions_info(archive=False)}"

@@ -36,6 +36,7 @@ class CSharpProject:
     BLOCK_MOD_CONFIG = "Mod config"
     BLOCK_ASSEMBLY_INFO = "AssemblyInfo"
     BLOCK_CHANE_LOG = "ChangeLog"
+    BLOCK_VERSIONS = "Versions"
     BLOCK_GIT = "Git"
     BLOCK_ARCHIVE = "Archive"
     BLOCK_GITHUB = "GitHub"

@@ -26,7 +26,7 @@ def remove_tag_by_version(project: CSharpProject) -> None:
                 f"Unable to parse latest git tag: {project.latest_tag.name}",
             )
             return
-    with project.context("Assembly vs Git tag"):
+    with project.context(project.BLOCK_VERSIONS):
         if project.assembly_version != project.git_tag_version:
             project.error(
                 "Assembly version does not match the latest git tag:\n"

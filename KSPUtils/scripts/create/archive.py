@@ -57,10 +57,11 @@ def create_archive(project: CSharpProject) -> None:
         sys.exit(0)
     project.context.reset()
     exclude = exclude_backups + project.mod_config.exclude_patterns
-    with project.context(project.BLOCK_ARCHIVE):
+    with project.context(project.BLOCK_VERSIONS):
         if not project.versions_match(archive=False) or not project.dll_version:
             project.error(f"Versions do not match\n{project.versions_info()}")
             sys_exit(project)
+    with project.context(project.BLOCK_ARCHIVE):
         archive_filename = f"{project.assembly_title}-{project.dll_version}.zip"
         archive_path = project.archives_path / archive_filename
         click.echo(f"Creating: {archive_path.relative_to(project.path)}")
