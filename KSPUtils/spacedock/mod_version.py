@@ -7,10 +7,10 @@ from KSPUtils.spacedock.common import SPACEDOCK_URL, WithId
 
 class ModVersion(WithId):
     created = jo.DateTimeProperty(required=True)
-    changelog = jo.StringProperty(required=True)
     download_path = jo.StringProperty(required=True)
     friendly_version = jo.StringProperty(required=True)
     game_version = jo.StringProperty(required=True)
+    changelog = jo.StringProperty()
     downloads = jo.IntegerProperty()
 
     def __init__(self, *args, **kwargs):
