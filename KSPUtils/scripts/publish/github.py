@@ -57,12 +57,12 @@ def upload_to_github(project: CSharpProject, update) -> None:
         sys.exit(0)
     project.update_github()
     if not project.github:
-        return
+        sys.exit(0)
     with project.context(project.BLOCK_VERSIONS):
         # see if locally everything matches
         if not project.versions_match() or not project.git_tag_version:
             project.error(f"Versions do not match\n{project.versions_info()}")
-            return
+            sys_exit(project)
     with project.context(project.BLOCK_GITHUB, github.GithubException):
         repo = project.github.get_repo(project.mod_config.github_url)
         # check if the tag for the release exists on the remote
@@ -77,12 +77,12 @@ def upload_to_github(project: CSharpProject, update) -> None:
                         f"Local:  {project.git_tag_version.commit_sha}\n"
                         f"Remote: {tag.commit.sha}"
                     )
-                    return
+                    sys_exit(project)
                 published_tag = tag
                 break
         if not published_tag:
             project.error(f"Git tag is not published: {project.git_tag_version!r}")
-            return
+            sys_exit(project)
         # check if we already have the release for this tag
         try:
             release = repo.get_release(published_tag.name)
@@ -90,7 +90,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 project.error(
                     f"Release already exists: {release.title} at {release.html_url}"
                 )
-                return
+                sys_exit(project)
         except github.UnknownObjectException:
             pass
         # get the change log entry for the release body
@@ -99,7 +99,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
             project.error(
                 f"Unable to get change log entry for: {project.assembly_version}"
             )
-            return
+            sys_exit(project)
         # create or update the release
         if not release:
             click.echo(f"Creating new release: {published_tag.name}")
@@ -114,7 +114,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
         # check if the asset already exists
         existing_assert: Optional[GitReleaseAsset] = None
         if not project.archive_version:
-            return
+            sys_exit(project)
         for asset in release.get_assets():
             if asset.name == project.archive_version.filename:
                 existing_assert = asset
@@ -123,7 +123,7 @@ def upload_to_github(project: CSharpProject, update) -> None:
                 project.error(
                     f"Asset already exists: {existing_assert.browser_download_url}"
                 )
-                return
+                sys_exit(project)
             click.echo(f"Removing existing asset: {existing_assert.name}")
             existing_assert.delete_asset()
         click.echo(f"Uploading asset: {project.archive_version.filepath}")

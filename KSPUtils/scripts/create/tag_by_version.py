@@ -31,10 +31,10 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
     """
     with project.context(project.BLOCK_GIT):
         if not project.repo:
-            return
+            sys_exit(project)
         if project.repo.active_branch.name != require_branch:
             project.error(f"Not on the '{require_branch}' branch")
-            return
+            sys_exit(project)
         if project.latest_tag:
             if not project.git_tag_version:
                 click.echo(
@@ -46,7 +46,7 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
                     project.error(
                         f"The latest git tag {project.latest_tag.name} is on the HEAD"
                     )
-                    return
+                    sys_exit(project)
     with project.context(project.BLOCK_CHANE_LOG):
         if (
             project.assembly_version

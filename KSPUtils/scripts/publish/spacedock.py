@@ -54,24 +54,24 @@ def upload_to_spacedock(
         # see if locally everything matches
         if not project.versions_match():
             project.error(f"Versions do not match\n{project.versions_info()}")
-            return
+            sys_exit(project)
     with project.context(project.BLOCK_SPACEDOCK, SpacedockError):
         if (
             not project.assembly_info
             or not project.assembly_version
             or not project.archive_version
         ):
-            return
+            sys_exit(project)
         if not project.assembly_info.max_ksp_version:
             project.error("No MAX KSP Version found in AssemblyInfo")
-            return
+            sys_exit(project)
         # get mod info from spacedock
         user = spacedock.login(".")
         mod_id = project.mod_config.spacedock_mod_id
         mod = user.get_mod(mod_id, reload=True)
         if not mod:
             project.error(f"Mod {mod_id} does not belong to {user.username}")
-            return
+            sys_exit(project)
         # check if we already have the release for this version
         published_version = mod.get_version(project.assembly_version)
         if published_version:
@@ -79,14 +79,14 @@ def upload_to_spacedock(
                 f"Release already exists: {published_version.friendly_version} "
                 f"at {published_version.download_url}"
             )
-            return
+            sys_exit(project)
         # get the change log entry for the release body
         change_log = project.change_log[project.assembly_version]
         if not change_log:
             project.error(
                 f"Unable to get change log entry for: {project.assembly_version}"
             )
-            return
+            sys_exit(project)
         # update the mod and reload its info
         mod.update(
             project.assembly_version.as_str_without_prefix,
