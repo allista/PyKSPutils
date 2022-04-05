@@ -34,6 +34,18 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
         if project.repo.active_branch.name != require_branch:
             project.error(f"Not on the '{require_branch}' branch")
             sys_exit(project)
+    with project.context(project.BLOCK_CHANE_LOG):
+        if (
+            project.assembly_version
+            and project.assembly_version > project.change_log_version
+        ):
+            project.error(
+                f"Assembly version {project.assembly_version} is greater "
+                f"than the ChangeLog version {project.change_log_version}\n"
+                f"Fill in the changelog entry for {project.assembly_version}",
+            )
+            sys_exit(project)
+    with project.context(project.BLOCK_GIT):
         if project.latest_tag:
             if not project.git_tag_version:
                 click.echo(
@@ -60,17 +72,6 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
                         "You have to investigate and remove the tag manually.",
                     )
                     sys_exit(project)
-    with project.context(project.BLOCK_CHANE_LOG):
-        if (
-            project.assembly_version
-            and project.assembly_version > project.change_log_version
-        ):
-            project.error(
-                f"Assembly version {project.assembly_version} is greater "
-                f"than the ChangeLog version {project.change_log_version}\n"
-                f"Fill in the changelog entry for {project.assembly_version}",
-            )
-            sys_exit(project)
     if not project.context.failed:
         click.echo(
             f"Creating new lightweight tag at the HEAD of the '{require_branch}' branch:\n"
