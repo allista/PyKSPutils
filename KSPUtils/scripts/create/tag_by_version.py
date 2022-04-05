@@ -26,8 +26,7 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
           E.g. if [assembly: AssemblyVersion("3.8.0")] is found in AssemblyInfo.cs,
           The sub-string "v3.8.0" should be present in the changelog file before other
           version-like sub-strings.
-        - a git tag with this version should not exist
-        - the latest existing git tag with a version should not be on HEAD commit
+        - a git tag with this version should not exist, or be the latest tag and on the HEAD commit
     """
     with project.context(project.BLOCK_GIT):
         if not project.repo:
@@ -36,11 +35,6 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
             project.error(f"Not on the '{require_branch}' branch")
             sys_exit(project)
         if project.latest_tag:
-            if project.latest_tag.commit == project.repo.head.commit:
-                project.error(
-                    f"The latest git tag {project.latest_tag.name} is on the HEAD"
-                )
-                sys_exit(project)
             if not project.git_tag_version:
                 click.echo(
                     f"WARNING: Unable to parse latest git tag: {project.latest_tag.name}",
@@ -55,9 +49,14 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
                     )
                     sys_exit(project)
                 if project.git_tag_version == project.assembly_version:
+                    if project.latest_tag.commit == project.repo.head.commit:
+                        click.echo(
+                            f"Tag already exists on the HEAD:\n{project.git_tag_version!r}"
+                        )
+                        sys_exit()
                     project.error(
                         f"Assembly version {project.assembly_version} "
-                        "is equal to the latest git tag version.\n"
+                        "is equal to the latest git tag version, which is not on HEAD commit.\n"
                         "You have to investigate and remove the tag manually.",
                     )
                     sys_exit(project)
