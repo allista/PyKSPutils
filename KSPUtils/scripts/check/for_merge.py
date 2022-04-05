@@ -36,7 +36,7 @@ def check_for_merge(project: CSharpProject, require_branch: str) -> None:
             and project.git_tag_version >= project.assembly_version
         ):
             project.error(
-                f"Git tag version should be be older than Assembly version"
+                f"Git tag version should less than Assembly version"
                 f"\nAssembly:  {project.assembly_version!r}"
                 f"\nGit tag:   {project.git_tag_version!r}"
             )

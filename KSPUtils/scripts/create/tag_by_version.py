@@ -21,7 +21,7 @@ def create_tag_by_version(project: CSharpProject, require_branch: str) -> None:
     Some conditions are checked before the tag is created:
 
     \b
-        - repository should be on the --required-branch
+        - repository should be on the --required-branch and sould not be dirty
         - a changelog file should exist, containing the same version as AssemblyInfo.cs
           E.g. if [assembly: AssemblyVersion("3.8.0")] is found in AssemblyInfo.cs,
           The sub-string "v3.8.0" should be present in the changelog file before other
