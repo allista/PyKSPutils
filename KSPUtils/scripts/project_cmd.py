@@ -38,8 +38,8 @@ def pass_project(load=True, on_error: Optional[OnErrorHandler] = None) -> D:
     return deco
 
 
-def sys_exit(project: CSharpProject) -> NoReturn:
-    sys.exit(project.context.exit_code)
+def sys_exit(project: Optional[CSharpProject] = None) -> NoReturn:
+    sys.exit(project.context.exit_code if project is not None else 0)
 
 
 def create_project_cmd(on_error: Optional[OnErrorHandler] = None) -> click.Group:

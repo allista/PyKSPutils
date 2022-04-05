@@ -1,5 +1,3 @@
-import sys
-
 import click
 
 from KSPUtils import spacedock
@@ -49,7 +47,7 @@ def upload_to_spacedock(
     project: CSharpProject,
 ) -> None:
     if not project.mod_config.spacedock_mod_id or not project.mod_config.archive_path:
-        sys.exit(0)
+        sys_exit()
     with project.context(project.BLOCK_VERSIONS):
         # see if locally everything matches
         if not project.versions_match():

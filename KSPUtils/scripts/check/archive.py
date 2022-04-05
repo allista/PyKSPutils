@@ -1,5 +1,3 @@
-import sys
-
 import click
 
 from KSPUtils.project_info.csharp_project import CSharpProject
@@ -14,7 +12,7 @@ def check_archive(project: CSharpProject) -> None:
     corresponding to Assembly version
     """
     if not project.mod_config.archive_path:
-        sys.exit(0)
+        sys_exit()
     with project.context(project.BLOCK_ARCHIVE):
         if not project.archive_version:
             project.error(

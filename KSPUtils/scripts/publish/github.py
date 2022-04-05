@@ -1,4 +1,3 @@
-import sys
 from typing import Optional
 
 import click
@@ -54,10 +53,10 @@ def set_token(project: CSharpProject, token) -> None:
 @pass_project(on_error=on_error_exit)
 def upload_to_github(project: CSharpProject, update) -> None:
     if not project.mod_config.github_url or not project.mod_config.archive_path:
-        sys.exit(0)
+        sys_exit()
     project.update_github()
     if not project.github:
-        sys.exit(0)
+        sys_exit()
     with project.context(project.BLOCK_VERSIONS):
         # see if locally everything matches
         if not project.versions_match() or not project.git_tag_version:

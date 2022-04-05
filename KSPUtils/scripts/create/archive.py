@@ -1,6 +1,5 @@
 import fnmatch
 import os
-import sys
 from pathlib import Path
 from typing import List, Optional
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -54,7 +53,7 @@ def create_archive(project: CSharpProject) -> None:
         or not project.game_data_path
         or not project.archives_path
     ):
-        sys.exit(0)
+        sys_exit()
     project.context.reset()
     exclude = exclude_backups + project.mod_config.exclude_patterns
     with project.context(project.BLOCK_VERSIONS):
